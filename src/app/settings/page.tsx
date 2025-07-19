@@ -27,25 +27,28 @@ export default function SettingsPage() {
     const checkSessionAndLoad = async () => {
       const { data: sessionData } = await supabase.auth.getSession()
       const user = sessionData.session?.user
+      console.log('User:', user)
       if (!user) {
         router.push('/login')
         return
       }
 
-      const { data: nutzer } = await supabase
+      const { data: nutzer, error: nutzerError } = await supabase
         .from('nutzer')
         .select('firma_id')
         .eq('id', user.id)
         .single()
+      console.log('Nutzer:', nutzer, 'Fehler:', nutzerError)
 
       if (!nutzer?.firma_id) return
       setFirmaId(nutzer.firma_id)
 
-      const { data: firma } = await supabase
+      const { data: firma, error: firmaError } = await supabase
         .from('firmen')
         .select('*')
         .eq('id', nutzer.firma_id)
         .single()
+      console.log('Firma:', firma, 'Fehler:', firmaError)
 
       if (firma) {
         setFirmaName(firma.name || '')
@@ -68,12 +71,23 @@ export default function SettingsPage() {
     if (saveTimeout) clearTimeout(saveTimeout)
     saveTimeout = setTimeout(() => {
       if (!firmaId) return
+      console.log('Speichere Konfiguration für Firma:', firmaId, config)
       supabase
         .from('firmen')
-        .update(config)
+        .update({
+          farbe: config.farbe,
+          farbe_dunkel: config.farbe_dunkel,
+          farbe_hell: config.farbe_hell,
+          border_radius: config.border_radius,
+          input_border_radius: config.input_border_radius,
+          schriftart: config.schriftart
+        })
         .eq('id', firmaId)
-        .then(({ error }) => {
-          if (!error) {
+        .then(({ error, data }) => {
+          if (error) {
+            console.error('Fehler beim Speichern:', error)
+          } else {
+            console.log('Erfolgreich gespeichert:', data)
             setNotify('Einstellungen gespeichert')
             setTimeout(() => setNotify(''), 2000)
           }
@@ -82,6 +96,7 @@ export default function SettingsPage() {
   }, [config, firmaId])
 
   const updateField = (field: string, value: string) => {
+    console.log(`Feld geändert: ${field} = ${value}`)
     setConfig(prev => ({ ...prev, [field]: value }))
     debouncedSave()
   }
