@@ -70,7 +70,14 @@ export default function SettingsPage() {
     if (!firmaId) return
     const { error } = await supabase
       .from('firmen')
-      .update(config)
+      .update({
+        farbe: config.farbe,
+        farbe_dunkel: config.farbe_dunkel,
+        farbe_hell: config.farbe_hell,
+        border_radius: config.border_radius,
+        input_border_radius: config.input_border_radius,
+        schriftart: config.schriftart
+      })
       .eq('id', firmaId)
 
     if (!error) {
@@ -90,18 +97,18 @@ export default function SettingsPage() {
   if (loading) return <p className="p-10 text-gray-600">Lade Einstellungen...</p>
 
   return (
-    <div className="flex h-screen bg-gray-100 font-inter">
+    <div className="flex h-screen bg-gray-100 font-inter text-gray-800">
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md">
         <div className="p-4 border-b">
           <h1 className="text-xl font-bold text-gray-800">CasaLead</h1>
         </div>
         <nav className="p-4 space-y-2">
-          <a href="/dashboard" className="flex items-center p-2 rounded-lg hover:bg-gray-100">
+          <a href="/dashboard" className="flex items-center p-2 rounded-lg hover:bg-gray-100 text-gray-800">
             <i className="fas fa-home mr-3"></i>
             Dashboard
           </a>
-          <a href="/leads" className="flex items-center p-2 rounded-lg hover:bg-gray-100">
+          <a href="/leads" className="flex items-center p-2 rounded-lg hover:bg-gray-100 text-gray-800">
             <i className="fas fa-users mr-3"></i>
             Leads
           </a>
@@ -149,7 +156,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="block font-medium text-gray-700">Schriftart</label>
-                <select value={config.schriftart} onChange={(e) => updateField('schriftart', e.target.value)} className="w-full border p-2 rounded-lg">
+                <select value={config.schriftart} onChange={(e) => updateField('schriftart', e.target.value)} className="w-full border p-2 rounded-lg text-gray-800">
                   <option value="'Inter', sans-serif">Inter</option>
                   <option value="'Poppins', sans-serif">Poppins</option>
                   <option value="'Roboto', sans-serif">Roboto</option>
@@ -166,7 +173,7 @@ export default function SettingsPage() {
             <div className="space-y-6">
               <div>
                 <label className="block font-medium text-gray-700 mb-1">Embed-Code</label>
-                <textarea value={embedCode} readOnly rows={4} className="w-full font-mono bg-gray-100 border border-gray-300 p-4 rounded" />
+                <textarea value={embedCode} readOnly rows={4} className="w-full font-mono bg-gray-100 border border-gray-300 p-4 rounded text-gray-800" />
                 <button onClick={handleCopy} className="mt-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-green-400 text-white rounded hover:opacity-90 transition">
                   {copySuccess ? '✓ Kopiert!' : 'In Zwischenablage kopieren'}
                 </button>
