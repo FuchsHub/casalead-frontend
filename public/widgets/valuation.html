@@ -23,10 +23,10 @@
             font-size: 1.5rem;
             color: #000;
         }
-        button {
-        background-color: var(--main-color);
-        }
 
+        button {
+            background-color: var(--primary-color, #0070f3);
+        }
 
         :root {
             --primary-color: #3b82f6; /* Default Blue */
@@ -530,7 +530,7 @@
         </form>
     </div>
 
-    <script type="module">
+    <script>
         // --- DESIGN CONFIGURATION ---
         const designConfig = {
             primaryColor: '#00ffff', // Example: A nice blue. Use hex codes.
@@ -1216,30 +1216,7 @@
             }
         }
 
-            import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-            const supabase = createClient(
-                import.meta.env.VITE_SUPABASE_URL,
-                import.meta.env.VITE_SUPABASE_ANON_KEY
-            );
-
-            const params = new URLSearchParams(window.location.search);
-            const company = params.get('company') || 'default';
-
-            const { data, error } = await supabase
-                .from('firmen')
-                .select('farbe')
-                .eq('name', company)
-                .single();
-
-            if (data?.farbe) {
-                document.documentElement.style.setProperty('--main-color', data.farbe);
-            } else {
-                console.warn('Keine Firmenfarbe gefunden:', error);
-            }
-
-            // Vorher vorhandene Zeile bleibt
-            document.addEventListener('DOMContentLoaded', initForm);
+        document.addEventListener('DOMContentLoaded', initForm);
     </script>
     <script>
   window.addEventListener('message', (event) => {
