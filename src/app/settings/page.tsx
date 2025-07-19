@@ -1,16 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase/client'
+
+let saveTimeout: NodeJS.Timeout | null = null
 
 export default function SettingsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [firmaId, setFirmaId] = useState('')
   const [firmaName, setFirmaName] = useState('')
-  const [saved, setSaved] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
+  const [notify, setNotify] = useState('')
 
   const [config, setConfig] = useState({
     farbe: '#2563eb',
@@ -62,28 +64,26 @@ export default function SettingsPage() {
     checkSessionAndLoad()
   }, [])
 
+  const debouncedSave = useCallback(() => {
+    if (saveTimeout) clearTimeout(saveTimeout)
+    saveTimeout = setTimeout(() => {
+      if (!firmaId) return
+      supabase
+        .from('firmen')
+        .update(config)
+        .eq('id', firmaId)
+        .then(({ error }) => {
+          if (!error) {
+            setNotify('Einstellungen gespeichert')
+            setTimeout(() => setNotify(''), 2000)
+          }
+        })
+    }, 500)
+  }, [config, firmaId])
+
   const updateField = (field: string, value: string) => {
     setConfig(prev => ({ ...prev, [field]: value }))
-  }
-
-  const saveSettings = async () => {
-    if (!firmaId) return
-    const { error } = await supabase
-      .from('firmen')
-      .update({
-        farbe: config.farbe,
-        farbe_dunkel: config.farbe_dunkel,
-        farbe_hell: config.farbe_hell,
-        border_radius: config.border_radius,
-        input_border_radius: config.input_border_radius,
-        schriftart: config.schriftart
-      })
-      .eq('id', firmaId)
-
-    if (!error) {
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-    }
+    debouncedSave()
   }
 
   const embedCode = `<script src="https://casalead.de/widgets/valuation.js" defer></script>\n<casalead-widget company="${firmaName}"></casalead-widget>`
@@ -120,7 +120,7 @@ export default function SettingsPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto relative">
         <header className="bg-white shadow-sm flex justify-between items-center px-6 py-4">
           <h2 className="text-2xl font-semibold text-gray-900">Einstellungen</h2>
           <button
@@ -130,6 +130,12 @@ export default function SettingsPage() {
             Abmelden
           </button>
         </header>
+
+        {notify && (
+          <div className="absolute top-6 right-6 bg-green-500 text-white py-2 px-4 rounded shadow-lg">
+            {notify}
+          </div>
+        )}
 
         <section className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-xl shadow p-6">
@@ -162,12 +168,6 @@ export default function SettingsPage() {
                   <option value="'Roboto', sans-serif">Roboto</option>
                 </select>
               </div>
-              <button
-                onClick={saveSettings}
-                className="w-full mt-4 px-4 py-3 text-lg bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition"
-              >
-                {saved ? '✓ Gespeichert' : 'Änderungen speichern'}
-              </button>
             </div>
 
             <div className="space-y-6">
