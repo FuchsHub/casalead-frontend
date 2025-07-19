@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
+// next.config.js
+const nextConfig = {
+  experimental: {
+    appDir: true
+  }
+}
+module.exports = nextConfig
 
 export default nextConfig;
