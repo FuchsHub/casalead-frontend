@@ -4,8 +4,21 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/utils/supabase/client'
 
 export default function LeadsPage() {
-  const [leads, setLeads] = useState<any[]>([])
-  const [selected, setSelected] = useState<any | null>(null)
+    type Lead = {
+    id: string
+    created_at: string
+    company: string
+    art: string
+    unterart: string
+    json_daten: any
+    name: string
+    email: string
+    telefon: string
+    status: 'offen' | 'in Bearbeitung' | 'erledigt'
+    }
+
+const [leads, setLeads] = useState<Lead[]>([])
+const [selected, setSelected] = useState<Lead | null>(null)
 
   useEffect(() => {
     supabase.from('leads').select('*').order('created_at', { ascending: false })
