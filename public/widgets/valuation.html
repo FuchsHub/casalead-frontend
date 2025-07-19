@@ -13,30 +13,22 @@
         const params = new URLSearchParams(window.location.search);
 
         const settings = {
-        farbe: params.get("farbe") || "#2563eb",
-        farbe_dunkel: params.get("farbe_dunkel") || "#1e40af",
-        farbe_hell: params.get("farbe_hell") || "#eff6ff",
-        border_radius: params.get("border_radius") || "1rem",
-        input_border_radius: params.get("input_border_radius") || "0.75rem",
-        schriftart: params.get("schriftart") || "'Inter', sans-serif",
-        company: params.get("company") || "Firma"
-        }
+            farbe: params.get("farbe") || "#2563eb",
+            farbe_dunkel: params.get("farbe_dunkel") || "#1e40af",
+            farbe_hell: params.get("farbe_hell") || "#eff6ff",
+            border_radius: params.get("border_radius") || "1rem",
+            input_border_radius: params.get("input_border_radius") || "0.75rem",
+            schriftart: params.get("schriftart") || "'Inter', sans-serif",
+            company: params.get("company") || "Firma"
+        };
 
-
-        const params = new URLSearchParams(window.location.search);
-        const farbe = params.get('farbe') || '#2563eb';
-        const farbe_dunkel = params.get('farbe_dunkel') || '#1e40af';
-        const farbe_hell = params.get('farbe_hell') || '#eff6ff';
-        const border_radius = params.get('border_radius') || '1rem';
-        const input_border_radius = params.get('input_border_radius') || '0.75rem';
-        const schriftart = params.get('schriftart') || "'Inter', sans-serif";
-
-        document.documentElement.style.setProperty('--primary-color', farbe);
-        document.documentElement.style.setProperty('--primary-color-dark', farbe_dunkel);
-        document.documentElement.style.setProperty('--primary-color-light', farbe_hell);
-        document.documentElement.style.setProperty('--border-radius', border_radius);
-        document.documentElement.style.setProperty('--input-border-radius', input_border_radius);
-        document.documentElement.style.setProperty('--font-family', schriftart);
+        // Setzen der CSS-Variablen direkt im HTML-Dokument
+        document.documentElement.style.setProperty('--primary-color', settings.farbe);
+        document.documentElement.style.setProperty('--primary-color-dark', settings.farbe_dunkel);
+        document.documentElement.style.setProperty('--primary-color-light', settings.farbe_hell);
+        document.documentElement.style.setProperty('--border-radius', settings.border_radius);
+        document.documentElement.style.setProperty('--input-border-radius', settings.input_border_radius);
+        document.documentElement.style.setProperty('--font-family', settings.schriftart);
     </script>
 
     <style id="theme-style">
@@ -51,20 +43,21 @@
 
         .header {
             font-size: 1.5rem;
-            color: #000;
+            color: var(--primary-color); /* Angepasst, um die primäre Farbe zu verwenden */
         }
 
         button {
-            background-color: var(--primary-color, #0070f3);
+            background-color: var(--primary-color);
         }
 
         :root {
-            --primary-color: ${settings.farbe};
-            --primary-color-dark: ${settings.farbe_dunkel};
-            --primary-color-light: ${settings.farbe_hell};
-            --border-radius: ${settings.border_radius};
-            --input-border-radius: ${settings.input_border_radius};
-            --font-family: ${settings.schriftart};
+            /* Diese Variablen werden nun direkt über das JavaScript oben gesetzt */
+            /* --primary-color: ${settings.farbe}; */
+            /* --primary-color-dark: ${settings.farbe_dunkel}; */
+            /* --primary-color-light: ${settings.farbe_hell}; */
+            /* --border-radius: ${settings.border_radius}; */
+            /* --input-border-radius: ${settings.input_border_radius}; */
+            /* --font-family: ${settings.schriftart}; */
         }
         .btn {
             background: var(--primary-color);
@@ -92,38 +85,38 @@
         }
         body {
             font-family: var(--font-family);
-            background-color: #f8fafc;
+            background-color: #f8fafc; /* Dies sollte auch von --primary-color-light überschrieben werden, wenn es im body-Selektor ist */
         }
         .page {
             display: none;
-            animation: fadeIn 0.4s ease-in-out; /* Slightly longer for smoother transition */
+            animation: fadeIn 0.4s ease-in-out;
         }
         .page.active {
             display: block;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); } /* More pronounced initial state */
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .progress-bar {
-            height: 8px; /* Slightly thicker */
-            transition: width 0.4s ease; /* Smoother transition */
+            height: 8px;
+            transition: width 0.4s ease;
             background-color: var(--primary-color);
         }
         .option-card {
-            transition: all 0.25s ease-in-out; /* Smoother transition */
+            transition: all 0.25s ease-in-out;
             cursor: pointer;
             position: relative;
             border-radius: var(--border-radius);
         }
         .option-card:hover {
-            transform: translateY(-3px); /* More noticeable lift */
-            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.15);
         }
         .option-card.selected {
             border-color: var(--primary-color);
             background-color: var(--primary-color-light);
-            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.3); /* Blue glow */
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.3);
         }
 
         /* Buttons */
@@ -156,18 +149,18 @@
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 24px; /* Larger thumb */
-            height: 24px; /* Larger thumb */
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             background: var(--primary-color);
             cursor: grab;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            margin-top: -8px; /* Center thumb vertically */
+            margin-top: -8px;
             transition: background 0.3s ease-in-out, transform 0.1s ease-in-out;
         }
         input[type="range"]::-moz-range-thumb {
-            width: 24px; /* Larger thumb */
-            height: 24px; /* Larger thumb */
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             background: var(--primary-color);
             cursor: grab;
@@ -193,7 +186,7 @@
             transition: border-color 0.2s ease-in-out;
         }
         .number-counter.input-error {
-            border-color: #ef4444; /* Red border for error */
+            border-color: #ef4444;
         }
         .number-counter button {
             background-color: #f3f4f6;
@@ -218,7 +211,7 @@
             font-size: 1rem;
             font-weight: 500;
             color: #1f2937;
-            -moz-appearance: textfield; /* Hide arrows for Firefox */
+            -moz-appearance: textfield;
         }
         .number-counter input::-webkit-outer-spin-button,
         .number-counter input::-webkit-inner-spin-button {
@@ -236,7 +229,7 @@
             box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
         }
         input[type="checkbox"] {
-            border-radius: var(--input-border-radius); /* Apply to checkboxes too */
+            border-radius: var(--input-border-radius);
             color: var(--primary-color);
         }
 
@@ -274,7 +267,7 @@
         </header>
 
         <!-- Form Pages -->
-        <form id="valuation-form" novalidate> <!-- novalidate to handle validation with JS -->
+        <form id="valuation-form" novalidate>
             <!-- Page 1: Property Type -->
             <div class="page active" id="page1">
                 <h2 class="text-2xl font-bold mb-6 text-gray-700">Um welchen Immobilientyp handelt es sich?</h2>
@@ -580,10 +573,13 @@
     <script>
         // --- DESIGN CONFIGURATION ---
         const designConfig = {
-            primaryColor: '#00ffff', // Example: A nice blue. Use hex codes.
-            borderRadius: '0.75rem', // '0.25rem' (small), '0.5rem' (medium), '0.75rem' (large), '9999px' (pill/round)
-            inputStyle: 'rounded', // 'rounded' or 'square'
-            fontFamily: 'Inter, sans-serif', // e.g., 'Roboto, sans-serif', 'Open Sans, sans-serif'
+            // Diese Werte werden nun von den URL-Parametern überschrieben
+            primaryColor: settings.farbe,
+            primaryColorDark: settings.farbe_dunkel,
+            primaryColorLight: settings.farbe_hell,
+            borderRadius: settings.border_radius,
+            inputBorderRadius: settings.input_border_radius, // Neuer Parameter für input_border_radius
+            fontFamily: settings.schriftart,
             enableAnimations: true, // true or false
         };
 
@@ -591,33 +587,22 @@
         function applyDesignConfig() {
             const root = document.documentElement;
             root.style.setProperty('--primary-color', designConfig.primaryColor);
-            // Calculate darker and lighter shades for hover/active states
-            const hexToRgb = hex => hex.match(/\w\w/g).map(x => parseInt(x, 16));
+            root.style.setProperty('--primary-color-dark', designConfig.primaryColorDark);
+            root.style.setProperty('--primary-color-light', designConfig.primaryColorLight);
+
+            // Calculate RGB for primary color for box-shadows
+            const hexToRgb = hex => {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null;
+            };
             const rgb = hexToRgb(designConfig.primaryColor);
-            root.style.setProperty('--primary-color-rgb', rgb.join(','));
-
-            // Simple darkening/lightening for demonstration
-            const darkenColor = (color, percent) => {
-                let f=parseInt(color.slice(1),16),t=percent<0?0:255,p=percent<0?percent*-1:percent,R=f>>16,G=(f>>8)&0x00ff,B=f&0x0000ff;
-                return "#"+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
+            if (rgb) {
+                root.style.setProperty('--primary-color-rgb', rgb);
             }
-            const lightenColor = (color, percent) => {
-                let f=parseInt(color.slice(1),16),t=percent<0?0:255,p=percent<0?percent*-1:percent,R=f>>16,G=(f>>8)&0x00ff,B=f&0x0000ff;
-                return "#"+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
-            }
-
-            root.style.setProperty('--primary-color-dark', darkenColor(designConfig.primaryColor, 0.15));
-            root.style.setProperty('--primary-color-light', lightenColor(designConfig.primaryColor, 0.85));
-
 
             root.style.setProperty('--border-radius', designConfig.borderRadius);
+            root.style.setProperty('--input-border-radius', designConfig.inputBorderRadius); // Verwende den neuen Parameter
             root.style.setProperty('--font-family', designConfig.fontFamily);
-
-            if (designConfig.inputStyle === 'square') {
-                root.style.setProperty('--input-border-radius', '0');
-            } else {
-                root.style.setProperty('--input-border-radius', designConfig.borderRadius);
-            }
 
             // Apply animation settings
             if (!designConfig.enableAnimations) {
@@ -630,7 +615,7 @@
 
         // --- FORM LOGIC ---
         let currentPage = 1;
-        const maxPage = 8; // Adjusted maxPage to 8 for the new owner info page
+        const maxPage = 8;
         const formData = {};
 
         let form, progressBar, stepCounter, prevBtn, nextBtn, submitBtn;
@@ -846,12 +831,12 @@
             const element = document.getElementById(elementId);
             if (element) {
                 // For option-cards, add class to the wrapper
-                if (element.classList.contains('grid')) { // This targets the grid container for options
+                if (element.classList.contains('grid')) {
                     element.classList.add('input-error');
-                } else if (element.classList.contains('number-counter')) { // For number counters
+                } else if (element.classList.contains('number-counter')) {
                     element.classList.add('input-error');
                 }
-                else { // For regular input fields
+                else {
                     element.classList.add('input-error');
                 }
                 
@@ -891,7 +876,7 @@
 
         // Validate current page before proceeding
         function validateCurrentPage() {
-            clearValidationErrors(); // Clear previous errors first
+            clearValidationErrors();
             let isValid = true;
 
             // Page 1: Property Type
@@ -952,14 +937,6 @@
                             isValid = false;
                         }
                     }
-                    // Floor is optional for Wohnung, so no strict validation here unless it's empty and required
-                    // else if (propertyType === 'wohnung') {
-                    //     const floor = document.getElementById('floor');
-                    //     if (floor && (floor.value === '' || parseInt(floor.value) < parseInt(floor.min))) {
-                    //         showValidationError('floor-counter-wrapper', 'Bitte geben Sie die Etage an (0 für Erdgeschoss).');
-                    //         isValid = false;
-                    //     }
-                    // }
                 } else if (propertyType === 'mehrfamilienhaus') {
                     const units = document.getElementById('units');
                     const totalLivingSpace = document.getElementById('total-living-space');
@@ -1111,7 +1088,7 @@
             } else {
                 subtypeOptionsContainer.innerHTML = '<p class="text-gray-500">Keine Untertypen für diesen Immobilientyp verfügbar.</p>';
             }
-            applyDesignConfigToDynamicContent(); // Apply design to newly added elements
+            applyDesignConfigToDynamicContent();
         }
 
         // Populate dynamic property details based on property type
@@ -1120,7 +1097,7 @@
             const dynamicDetailsContainer = document.getElementById('dynamic-property-details');
             
             dynamicDetailsContainer.innerHTML = propertyDetailsFields[propertyType] || '<p class="text-gray-500">Bitte wählen Sie zuerst einen Immobilientyp aus.</p>';
-            applyDesignConfigToDynamicContent(); // Apply design to newly added elements
+            applyDesignConfigToDynamicContent();
         }
 
         // Function to apply design config to dynamically loaded content
@@ -1159,7 +1136,7 @@
             value += step;
             if (value > max) value = max;
             input.value = value;
-            hideValidationError(id + '-counter-wrapper'); // Hide error on interaction
+            hideValidationError(id + '-counter-wrapper');
         }
 
         function decrement(id, step, min) {
@@ -1168,7 +1145,7 @@
             value -= step;
             if (value < min) value = min;
             input.value = value;
-            hideValidationError(id + '-counter-wrapper'); // Hide error on interaction
+            hideValidationError(id + '-counter-wrapper');
         }
 
         function updateCounterInput(inputElement) {
@@ -1223,7 +1200,6 @@
                 if (propertyType === 'haus') {
                     formData.plotArea = document.getElementById('plot-area').value;
                 } else if (propertyType === 'wohnung') {
-                    // Floor is optional, only collect if element exists
                     const floorElement = document.getElementById('floor');
                     if (floorElement) {
                         formData.floor = floorElement.value;
@@ -1271,14 +1247,13 @@
       const { primaryColor, backgroundColor, textColor } = event.data.data;
       const styleTag = document.getElementById('theme-style');
 
-      // Ersetze nur gezielt die Farbangaben
       if (styleTag) {
         styleTag.textContent = styleTag.textContent
           .replace(/background-color:\s*[^;]+;/g, `background-color: ${backgroundColor || 'white'};`)
           .replace(/color:\s*[^;]+;/g, `color: ${textColor || 'black'};`)
           .replace(/\.header\s*{[^}]*}/g, `.header {
             font-size: 1.5rem;
-            color: ${primaryColor || '#0070f3'};
+            color: ${primaryColor || 'var(--primary-color)'}; /* Hier auch die CSS-Variable nutzen */
           }`);
       }
     }
@@ -1286,7 +1261,4 @@
 </script>
 
 </body>
-
-
-
 </html>
