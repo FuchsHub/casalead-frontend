@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ihre kostenlose Immobilienbewertung | ProfiTool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS Variables for easy theming */
+        :root {
+            --primary-color: #3b82f6; /* Default Blue */
+            --primary-color-dark: #2563eb; /* Darker Blue */
+            --primary-color-light: #eff6ff; /* Light Blue */
+            --border-radius: 0.5rem; /* Default rounded */
+            --input-border-radius: 0.5rem; /* Default rounded */
+            --font-family: 'Inter', sans-serif;
+        }
+
+        .property-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: var(--border-radius);
+        }
+        body {
+            font-family: var(--font-family);
+            background-color: #f8fafc;
+        }
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out; /* Slightly longer for smoother transition */
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); } /* More pronounced initial state */
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .progress-bar {
+            height: 8px; /* Slightly thicker */
+            transition: width 0.4s ease; /* Smoother transition */
+            background-color: var(--primary-color);
+        }
+        .option-card {
+            transition: all 0.25s ease-in-out; /* Smoother transition */
+            cursor: pointer;
+            position: relative;
+            border-radius: var(--border-radius);
+        }
+        .option-card:hover {
+            transform: translateY(-3px); /* More noticeable lift */
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.15); /* Stronger shadow */
+        }
+        .option-card.selected {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color-light);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.3); /* Blue glow */
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            border-radius: var(--border-radius);
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-color-dark);
+            border-color: var(--primary-color-dark);
+        }
+        .btn-secondary {
+            border-radius: var(--border-radius);
+        }
+
+        /* Custom range slider styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            outline: none;
+            transition: background 0.3s ease-in-out;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px; /* Larger thumb */
+            height: 24px; /* Larger thumb */
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: grab;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-top: -8px; /* Center thumb vertically */
+            transition: background 0.3s ease-in-out, transform 0.1s ease-in-out;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 24px; /* Larger thumb */
+            height: 24px; /* Larger thumb */
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: grab;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background 0.3s ease-in-out, transform 0.1s ease-in-out;
+        }
+        input[type="range"]::-webkit-slider-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        input[type="range"]::-moz-range-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+
+        /* Number Counter Styling */
+        .number-counter {
+            display: flex;
+            align-items: center;
+            border: 1px solid #d1d5db;
+            border-radius: var(--input-border-radius);
+            overflow: hidden;
+            transition: border-color 0.2s ease-in-out;
+        }
+        .number-counter.input-error {
+            border-color: #ef4444; /* Red border for error */
+        }
+        .number-counter button {
+            background-color: #f3f4f6;
+            color: #4b5563;
+            padding: 0.75rem 1rem;
+            font-size: 1.25rem;
+            line-height: 1;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .number-counter button:hover {
+            background-color: #e5e7eb;
+            color: #1f2937;
+        }
+        .number-counter input {
+            flex-grow: 1;
+            text-align: center;
+            border: none;
+            outline: none;
+            padding: 0.75rem 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #1f2937;
+            -moz-appearance: textfield; /* Hide arrows for Firefox */
+        }
+        .number-counter input::-webkit-outer-spin-button,
+        .number-counter input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Input fields */
+        input[type="text"], input[type="number"], input[type="email"], input[type="tel"], textarea {
+            border-radius: var(--input-border-radius);
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="tel"]:focus, textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
+        }
+        input[type="checkbox"] {
+            border-radius: var(--input-border-radius); /* Apply to checkboxes too */
+            color: var(--primary-color);
+        }
+
+        /* Error Message Styling */
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .input-error {
+            border-color: #ef4444 !important;
+        }
+        .input-error.option-card {
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+        }
+        .input-error.number-counter {
+            border-color: #ef4444 !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="max-w-3xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="flex justify-between items-center mb-2">
+                <h1 class="text-3xl font-extrabold text-gray-800">Ihre Immobilienbewertung</h1>
+                <span class="text-sm font-medium text-gray-500 step-counter">Schritt 1 von 8</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                <div class="progress-bar rounded-full" style="width: 12.5%"></div>
+            </div>
+        </header>
+
+        <!-- Form Pages -->
+        <form id="valuation-form" novalidate> <!-- novalidate to handle validation with JS -->
+            <!-- Page 1: Property Type -->
+            <div class="page active" id="page1">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">Um welchen Immobilientyp handelt es sich?</h2>
+                <p class="text-gray-600 mb-8">Wählen Sie die Kategorie, die am besten zu Ihrer Immobilie passt, um eine präzise Bewertung zu erhalten.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="property-type-options">
+                    <div class="option-card cursor-pointer p-6 border-2 border-gray-200" data-value="haus" onclick="selectOption(this, 'propertyType')">
+                        <div class="flex items-center">
+                            <div class="mr-4">
+                                <div class="w-20 h-20 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500">
+                                    <i class="fas fa-home text-4xl"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg text-gray-800">Haus</h3>
+                                <p class="text-sm text-gray-500">Einfamilienhaus, Doppelhaushälfte, Reihenhaus, Villa</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="option-card cursor-pointer p-6 border-2 border-gray-200" data-value="wohnung" onclick="selectOption(this, 'propertyType')">
+                        <div class="flex items-center">
+                            <div class="mr-4">
+                                <img src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" alt="Moderne Stadtwohnung mit Balkon" class="property-img">
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg text-gray-800">Wohnung</h3>
+                                <p class="text-sm text-gray-500">Eigentumswohnung, Dachgeschoss, Penthouse, Maisonette</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="option-card cursor-pointer p-6 border-2 border-gray-200" data-value="mehrfamilienhaus" onclick="selectOption(this, 'propertyType')">
+                        <div class="flex items-center">
+                            <div class="mr-4">
+                                <img src="https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1600&q=80" alt="Modernes Mehrfamilienhaus mit Parkplätzen" class="property-img">
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg text-gray-800">Mehrfamilienhaus</h3>
+                                <p class="text-sm text-gray-500">Haus mit mehreren Wohneinheiten als Kapitalanlage</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="property-type-options-error" class="error-message hidden">Bitte wählen Sie einen Immobilientyp aus.</div>
+            </div>
+
+            <!-- Page 2: Subtype -->
+            <div class="page" id="page2">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">Welche Art von <span id="property-type-label" class="text-blue-600">Immobilie</span> ist es genau?</h2>
+                <p class="text-gray-600 mb-8">Helfen Sie uns, Ihre Immobilie noch genauer zu identifizieren.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="subtype-options">
+                    <!-- Dynamically filled based on property type -->
+                </div>
+                <div id="subtype-options-error" class="error-message hidden">Bitte wählen Sie eine genauere Art der Immobilie aus.</div>
+            </div>
+
+            <!-- Page 3: Address -->
+            <div class="page" id="page3">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">Wo befindet sich Ihre Immobilie?</h2>
+                <p class="text-gray-600 mb-8">Die genaue Lage ist entscheidend für eine präzise Bewertung.</p>
+                <div class="space-y-5">
+                    <div>
+                        <label for="street" class="block text-base font-medium text-gray-700 mb-1">Straße und Hausnummer</label>
+                        <input type="text" id="street" name="street" class="w-full px-4 py-2.5 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out" placeholder="Musterstraße 123">
+                        <div id="street-error" class="error-message hidden">Bitte geben Sie die Straße und Hausnummer an.</div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="zip" class="block text-base font-medium text-gray-700 mb-1">PLZ</label>
+                            <input type="text" id="zip" name="zip" class="w-full px-4 py-2.5 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out" placeholder="12345">
+                            <div id="zip-error" class="error-message hidden">Bitte geben Sie die Postleitzahl an.</div>
+                        </div>
+                        <div>
+                            <label for="city" class="block text-base font-medium text-gray-700 mb-1">Stadt</label>
+                            <input type="text" id="city" name="city" class="w-full px-4 py-2.5 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out" placeholder="Musterstadt">
+                            <div id="city-error" class="error-message hidden">Bitte geben Sie die Stadt an.</div>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm">
+                        <i class="fas fa-info-circle mr-2"></i> Bitte geben Sie die vollständige Adresse ein, um die Genauigkeit Ihrer Bewertung zu maximieren.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 4: Property Details (Dynamic based on type) -->
+            <div class="page" id="page4">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">Wichtige Details zu Ihrer Immobilie</h2>
+                <p class="text-gray-600 mb-8">Diese Angaben helfen uns, den Wert Ihrer Immobilie präzise zu bestimmen.</p>
+                <div class="space-y-6" id="dynamic-property-details">
+                    <!-- Content will be dynamically loaded here -->
+                </div>
+            </div>
+
+            <!-- Page 5: Features -->
+            <div class="page" id="page5">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">Besondere Merkmale und Ausstattung</h2>
+                <p class="text-gray-600 mb-8">Welche Ausstattungsmerkmale machen Ihre Immobilie besonders attraktiv?</p>
+                <div class="space-y-6">
+                    <div>
+                        <label for="construction-year" class="block text-base font-medium text-gray-700 mb-1">Baujahr</label>
+                        <div class="number-counter" id="construction-year-counter-wrapper">
+                            <button type="button" onclick="decrement('construction-year', 1, 1800)">-</button>
+                            <input type="number" id="construction-year" name="construction-year" min="1800" max="2024" value="2000" onchange="updateCounterInput(this)">
+                            <button type="button" onclick="increment('construction-year', 1, 2024)">+</button>
+                        </div>
+                        <div id="construction-year-error" class="error-message hidden">Bitte geben Sie ein gültiges Baujahr an.</div>
+                    </div>
+                    
+                    <div>
+                        <label for="condition" class="block text-base font-medium text-gray-700 mb-2">Zustand der Immobilie (1-5)</label>
+                        <div class="flex items-center">
+                            <input type="range" id="condition" name="condition" min="1" max="5" step="1" value="3" 
+                                oninput="document.getElementById('condition-value').textContent = this.value">
+                            <span id="condition-value" class="ml-3 w-8 text-center font-medium text-gray-700">3</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">1 = Sanierungsbedürftig, 5 = Neuwertig/Sehr gepflegt</p>
+                    </div>
+                    
+                    <div>
+                        <label for="quality" class="block text-base font-medium text-gray-700 mb-2">Qualität der Ausstattung (1-5)</label>
+                        <div class="flex items-center">
+                            <input type="range" id="quality" name="quality" min="1" max="5" step="1" value="3"
+                                oninput="document.getElementById('quality-value').textContent = this.value">
+                            <span id="quality-value" class="ml-3 w-8 text-center font-medium text-gray-700">3</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">1 = Einfach, 5 = Luxuriös/Hochwertig</p>
+                    </div>
+                
+                    <div>
+                        <label class="block text-base font-medium text-gray-700 mb-3">Zusätzliche Ausstattungsmerkmale</label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="balcony" name="features" value="balcony" class="h-5 w-5 border-gray-300 focus:ring-blue-500">
+                                <label for="balcony" class="ml-2 text-sm text-gray-700">Balkon/Terrasse</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="garden" name="features" value="garden" class="h-5 w-5 border-gray-300 focus:ring-blue-500">
+                                <label for="garden" class="ml-2 text-sm text-gray-700">Garten</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="garage" name="features" value="garage" class="h-5 w-5 border-gray-300 focus:ring-blue-500">
+                                <label for="garage" class="ml-2 text-sm text-gray-700">Garage/Stellplatz</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="cellar" name="features" value="cellar" class="h-5 w-5 border-gray-300 focus:ring-blue-500">
+                                <label for="cellar" class="ml-2 text-sm text-gray-700">Keller</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="elevator" name="features" value="elevator" class="h-5 w-5 border-gray-300 focus:ring-blue-500">
+                                <label for="elevator" class="ml-2 text-sm text-gray-700">Aufzug</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="kitchen" name="features" value="kitchen" class="h-5 w-5 border-gray-300 focus:ring-blue-500">
+                                <label for="kitchen" class="ml-2 text-sm text-gray-700">Einbauküche</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="furnished" name="features" value="furnished" class="h-5 w-5 border-gray-300 focus:ring-blue-500">
+                                <label for="furnished" class="ml-2 text-sm text-gray-700">Möbliert</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="fireplace" name="features" value="fireplace" class="h-5 w-5 border-gray-300 focus:ring-blue-500">
+                                <label for="fireplace" class="ml-2 text-sm text-gray-700">Kamin</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 6: Contact -->
+            <div class="page" id="page6">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">Wie können wir Sie erreichen?</h2>
+                <p class="text-gray-600 mb-8">Wir benötigen Ihre Kontaktdaten, um Ihnen die Bewertung zukommen zu lassen.</p>
+                <div class="space-y-5">
+                    <div>
+                        <label for="email" class="block text-base font-medium text-gray-700 mb-1">E-Mail-Adresse <span class="text-red-500">*</span></label>
+                        <input type="email" id="email" name="email" class="w-full px-4 py-2.5 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out" placeholder="ihre.email@example.com" required>
+                        <div id="email-error" class="error-message hidden">Bitte geben Sie eine gültige E-Mail-Adresse an.</div>
+                    </div>
+                    <div>
+                        <label for="phone" class="block text-base font-medium text-gray-700 mb-1">Telefonnummer (optional)</label>
+                        <input type="tel" id="phone" name="phone" class="w-full px-4 py-2.5 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out" placeholder="z.B. 0176 12345678">
+                    </div>
+                    <div class="flex items-start mt-4">
+                        <input type="checkbox" id="contact-consent" name="contact-consent" class="h-5 w-5 border-gray-300 focus:ring-blue-500 mt-1" required>
+                        <label for="contact-consent" class="ml-3 block text-sm text-gray-700">Ich stimme zu, dass meine Daten zur Kontaktaufnahme und zur Übermittlung der Immobilienbewertung verwendet werden dürfen. <a href="#" class="text-blue-600 hover:underline">Datenschutzerklärung</a></label>
+                    </div>
+                    <div id="contact-consent-error" class="error-message hidden">Bitte stimmen Sie der Datenverwendung zu.</div>
+                </div>
+            </div>
+
+            <!-- Page 7: Owner Info -->
+            <div class="page" id="page7">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">Ihre Anschrift</h2>
+                <p class="text-gray-600 mb-8">Bitte geben Sie Ihre persönlichen Kontaktdaten an, damit wir Ihnen die Bewertung zusenden können.</p>
+                <div class="space-y-4">
+                    <div>
+                        <label for="owner-name" class="block text-base font-medium text-gray-700 mb-1">Vor- und Nachname <span class="text-red-500">*</span></label>
+                        <input type="text" id="owner-name" name="owner-name" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out" placeholder="Max Mustermann">
+                        <div id="owner-name-error" class="error-message hidden">Bitte geben Sie Ihren Namen an.</div>
+                    </div>
+                    <div>
+                        <label for="owner-street" class="block text-base font-medium text-gray-700 mb-1">Straße und Hausnummer <span class="text-red-500">*</span></label>
+                        <input type="text" id="owner-street" name="owner-street" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out" placeholder="Musterstraße 123">
+                        <div id="owner-street-error" class="error-message hidden">Bitte geben Sie Ihre Straße und Hausnummer an.</div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="owner-zip" class="block text-base font-medium text-gray-700 mb-1">PLZ <span class="text-red-500">*</span></label>
+                            <input type="text" id="owner-zip" name="owner-zip" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out" placeholder="12345">
+                            <div id="owner-zip-error" class="error-message hidden">Bitte geben Sie Ihre Postleitzahl an.</div>
+                        </div>
+                        <div>
+                            <label for="owner-city" class="block text-base font-medium text-gray-700 mb-1">Stadt <span class="text-red-500">*</span></label>
+                            <input type="text" id="owner-city" name="owner-city" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out" placeholder="Musterstadt">
+                            <div id="owner-city-error" class="error-message hidden">Bitte geben Sie Ihre Stadt an.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 8: Sale Reason -->
+            <div class="page" id="page8">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">Warum möchten Sie die Immobilie bewerten lassen?</h2>
+                <p class="text-gray-600 mb-8">Ihr Grund hilft uns, Sie optimal zu beraten.</p>
+                <div class="space-y-4" id="sale-reason-options">
+                    <div class="option-card cursor-pointer p-4 border-2 border-gray-200" onclick="selectOption(this, 'saleReason')" data-value="umzug">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3 text-blue-600">
+                                <i class="fas fa-truck-moving text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-800">Umzug</h3>
+                                <p class="text-sm text-gray-500">Beruflich oder privat bedingt</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="option-card cursor-pointer p-4 border-2 border-gray-200" onclick="selectOption(this, 'saleReason')" data-value="erbschaft">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3 text-blue-600">
+                                <i class="fas fa-hand-holding-usd text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-800">Erbschaft</h3>
+                                <p class="text-sm text-gray-500">Immobilie wurde geerbt</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="option-card cursor-pointer p-4 border-2 border-gray-200" onclick="selectOption(this, 'saleReason')" data-value="trennung">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3 text-blue-600">
+                                <i class="fas fa-heart-broken text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-800">Trennung/Scheidung</h3>
+                                <p class="text-sm text-gray-500">Auflösung der Partnerschaft</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="option-card cursor-pointer p-4 border-2 border-gray-200" onclick="selectOption(this, 'saleReason')" data-value="investition">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3 text-blue-600">
+                                <i class="fas fa-chart-line text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-800">Investition/Veräußerung</h3>
+                                <p class="text-sm text-gray-500">Kapitalanlage wird veräußert</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="option-card cursor-pointer p-4 border-2 border-gray-200" onclick="selectOption(this, 'saleReason')" data-value="anderer-grund">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3 text-blue-600">
+                                <i class="fas fa-question text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-800">Anderer Grund</h3>
+                                <p class="text-sm text-gray-500">Bitte geben Sie Details an</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="other-reason-container" class="hidden mt-4">
+                        <label for="other-reason" class="block text-base font-medium text-gray-700 mb-1">Bitte beschreiben Sie Ihren Grund:</label>
+                        <textarea id="other-reason" name="other-reason" rows="3" class="w-full px-4 py-2.5 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out" placeholder="Ich möchte meine Immobilie bewerten lassen, weil..."></textarea>
+                        <div id="other-reason-error" class="error-message hidden">Bitte beschreiben Sie den Grund.</div>
+                    </div>
+                </div>
+                <div id="sale-reason-options-error" class="error-message hidden">Bitte wählen Sie einen Grund aus.</div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="mt-10 flex justify-between">
+                <button type="button" onclick="prevPage()" class="hidden px-7 py-3 border border-gray-300 btn-secondary text-gray-700 font-semibold hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out" id="prev-btn">
+                    <i class="fas fa-arrow-left mr-2"></i> Zurück
+                </button>
+                <button type="button" onclick="nextPage()" class="ml-auto px-7 py-3 btn-primary font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out" id="next-btn">
+                    Weiter <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+                <button type="button" class="hidden ml-auto px-7 py-3 bg-green-600 border border-transparent rounded-lg text-white font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200 ease-in-out" id="submit-btn" onclick="submitForm()">
+                    <i class="fas fa-check-circle mr-2"></i> Bewertung anfordern
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // --- DESIGN CONFIGURATION ---
+        const designConfig = {
+            primaryColor: '#007bff', // Example: A nice blue. Use hex codes.
+            borderRadius: '0.75rem', // '0.25rem' (small), '0.5rem' (medium), '0.75rem' (large), '9999px' (pill/round)
+            inputStyle: 'rounded', // 'rounded' or 'square'
+            fontFamily: 'Inter, sans-serif', // e.g., 'Roboto, sans-serif', 'Open Sans, sans-serif'
+            enableAnimations: true, // true or false
+        };
+
+        // Function to apply design configurations
+        function applyDesignConfig() {
+            const root = document.documentElement;
+            root.style.setProperty('--primary-color', designConfig.primaryColor);
+            // Calculate darker and lighter shades for hover/active states
+            const hexToRgb = hex => hex.match(/\w\w/g).map(x => parseInt(x, 16));
+            const rgb = hexToRgb(designConfig.primaryColor);
+            root.style.setProperty('--primary-color-rgb', rgb.join(','));
+
+            // Simple darkening/lightening for demonstration
+            const darkenColor = (color, percent) => {
+                let f=parseInt(color.slice(1),16),t=percent<0?0:255,p=percent<0?percent*-1:percent,R=f>>16,G=(f>>8)&0x00ff,B=f&0x0000ff;
+                return "#"+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
+            }
+            const lightenColor = (color, percent) => {
+                let f=parseInt(color.slice(1),16),t=percent<0?0:255,p=percent<0?percent*-1:percent,R=f>>16,G=(f>>8)&0x00ff,B=f&0x0000ff;
+                return "#"+(0x1000000+(Math.round((t-R)*p)+R)*0x10000+(Math.round((t-G)*p)+G)*0x100+(Math.round((t-B)*p)+B)).toString(16).slice(1);
+            }
+
+            root.style.setProperty('--primary-color-dark', darkenColor(designConfig.primaryColor, 0.15));
+            root.style.setProperty('--primary-color-light', lightenColor(designConfig.primaryColor, 0.85));
+
+
+            root.style.setProperty('--border-radius', designConfig.borderRadius);
+            root.style.setProperty('--font-family', designConfig.fontFamily);
+
+            if (designConfig.inputStyle === 'square') {
+                root.style.setProperty('--input-border-radius', '0');
+            } else {
+                root.style.setProperty('--input-border-radius', designConfig.borderRadius);
+            }
+
+            // Apply animation settings
+            if (!designConfig.enableAnimations) {
+                document.querySelectorAll('.page, .option-card, .progress-bar, input[type="range"]::-webkit-slider-thumb, input[type="range"]::-moz-range-thumb, .number-counter button, input[type="text"], input[type="number"], input[type="email"], input[type="tel"], textarea, .btn-primary, .btn-secondary, .error-message').forEach(el => {
+                    el.style.transition = 'none';
+                    el.style.animation = 'none';
+                });
+            }
+        }
+
+        // --- FORM LOGIC ---
+        let currentPage = 1;
+        const maxPage = 8; // Adjusted maxPage to 8 for the new owner info page
+        const formData = {};
+
+        let form, progressBar, stepCounter, prevBtn, nextBtn, submitBtn;
+
+        const subtypes = {
+            haus: [
+                { value: 'einfamilienhaus', label: 'Einfamilienhaus', description: 'Freistehendes Haus für eine Familie' },
+                { value: 'doppelhaus', label: 'Doppelhaushälfte', description: 'Eigene Häuser mit gemeinsamer Wand' },
+                { value: 'reihenhaus', label: 'Reihenhaus', description: 'Kompaktes Haus in einer Reihe' },
+                { value: 'villa', label: 'Villa/Luxusvilla', description: 'Prestigeobjekt mit gehobener Ausstattung' },
+            ],
+            wohnung: [
+                { value: 'etagenwohnung', label: 'Etagenwohnung', description: 'Standardwohnung im Mehrfamilienhaus' },
+                { value: 'dachgeschoss', label: 'Dachgeschosswohnung', description: 'Attraktive Ausbauwohnung unter dem Dach' },
+                { value: 'erdgeschoss', label: 'Erdgeschosswohnung', description: 'Barrierefreie Wohnung im EG' },
+                { value: 'maisonette', label: 'Maisonette', description: 'Wohnung über zwei Etagen mit Treppe' },
+                { value: 'penthouse', label: 'Penthouse', description: 'Exklusive Top-Wohnung mit Blick' },
+            ],
+            mehrfamilienhaus: [
+                { value: 'klein-mfh', label: 'Kleines MFH (2-4 WEs)', description: 'Kapitalanlage mit überschaubarer Einheit' },
+                { value: 'mittel-mfh', label: 'Mittleres MFH (5-10 WEs)', description: 'Stabile Rendite mit mehreren Mietern' },
+                { value: 'gross-mfh', label: 'Großes MFH (10+ WEs)', description: 'Professionelle Verwaltung erforderlich' }
+            ]
+        };
+
+        const propertyDetailsFields = {
+            haus: `
+                <div>
+                    <label for="living-space" class="block text-base font-medium text-gray-700 mb-1">Wohnfläche (m²)</label>
+                    <div class="number-counter" id="living-space-counter-wrapper">
+                        <button type="button" onclick="decrement('living-space', 5, 10)">-</button>
+                        <input type="number" id="living-space" name="living-space" min="10" value="120" onchange="updateCounterInput(this)">
+                        <button type="button" onclick="increment('living-space', 5, 9999)">+</button>
+                    </div>
+                    <div id="living-space-error" class="error-message hidden">Bitte geben Sie die Wohnfläche an.</div>
+                </div>
+                <div>
+                    <label for="plot-area" class="block text-base font-medium text-gray-700 mb-1">Grundstücksfläche (m²)</label>
+                    <div class="number-counter" id="plot-area-counter-wrapper">
+                        <button type="button" onclick="decrement('plot-area', 10, 10)">-</button>
+                        <input type="number" id="plot-area" name="plot-area" min="10" value="500" onchange="updateCounterInput(this)">
+                        <button type="button" onclick="increment('plot-area', 10, 99999)">+</button>
+                    </div>
+                    <div id="plot-area-error" class="error-message hidden">Bitte geben Sie die Grundstücksfläche an.</div>
+                </div>
+                <div>
+                    <label for="rooms" class="block text-base font-medium text-gray-700 mb-1">Anzahl Zimmer</label>
+                    <div class="number-counter" id="rooms-counter-wrapper">
+                        <button type="button" onclick="decrement('rooms', 1, 1)">-</button>
+                        <input type="number" id="rooms" name="rooms" min="1" value="4" onchange="updateCounterInput(this)">
+                        <button type="button" onclick="increment('rooms', 1, 15)">+</button>
+                    </div>
+                    <div id="rooms-error" class="error-message hidden">Bitte geben Sie die Anzahl der Zimmer an.</div>
+                </div>
+            `,
+            wohnung: `
+                <div>
+                    <label for="living-space" class="block text-base font-medium text-gray-700 mb-1">Wohnfläche (m²)</label>
+                    <div class="number-counter" id="living-space-counter-wrapper">
+                        <button type="button" onclick="decrement('living-space', 5, 10)">-</button>
+                        <input type="number" id="living-space" name="living-space" min="10" value="85" onchange="updateCounterInput(this)">
+                        <button type="button" onclick="increment('living-space', 5, 9999)">+</button>
+                    </div>
+                    <div id="living-space-error" class="error-message hidden">Bitte geben Sie die Wohnfläche an.</div>
+                </div>
+                <div>
+                    <label for="rooms" class="block text-base font-medium text-gray-700 mb-1">Anzahl Zimmer</label>
+                    <div class="number-counter" id="rooms-counter-wrapper">
+                        <button type="button" onclick="decrement('rooms', 1, 1)">-</button>
+                        <input type="number" id="rooms" name="rooms" min="1" value="3" onchange="updateCounterInput(this)">
+                        <button type="button" onclick="increment('rooms', 1, 10)">+</button>
+                    </div>
+                    <div id="rooms-error" class="error-message hidden">Bitte geben Sie die Anzahl der Zimmer an.</div>
+                </div>
+                <div>
+                    <label for="floor" class="block text-base font-medium text-gray-700 mb-1">Etage</label>
+                    <div class="number-counter" id="floor-counter-wrapper">
+                        <button type="button" onclick="decrement('floor', 1, 0)">-</button>
+                        <input type="number" id="floor" name="floor" min="0" value="3" onchange="updateCounterInput(this)">
+                        <button type="button" onclick="increment('floor', 1, 50)">+</button>
+                    </div>
+                    <div id="floor-error" class="error-message hidden">Bitte geben Sie die Etage an (0 für Erdgeschoss).</div>
+                </div>
+            `,
+            mehrfamilienhaus: `
+                <div>
+                    <label for="units" class="block text-base font-medium text-gray-700 mb-1">Anzahl Wohneinheiten</label>
+                    <div class="number-counter" id="units-counter-wrapper">
+                        <button type="button" onclick="decrement('units', 1, 2)">-</button>
+                        <input type="number" id="units" name="units" min="2" value="4" onchange="updateCounterInput(this)">
+                        <button type="button" onclick="increment('units', 1, 100)">+</button>
+                    </div>
+                    <div id="units-error" class="error-message hidden">Bitte geben Sie die Anzahl der Wohneinheiten an.</div>
+                </div>
+                <div>
+                    <label for="total-living-space" class="block text-base font-medium text-gray-700 mb-1">Gesamtwohnfläche (m²)</label>
+                    <div class="number-counter" id="total-living-space-counter-wrapper">
+                        <button type="button" onclick="decrement('total-living-space', 10, 50)">-</button>
+                        <input type="number" id="total-living-space" name="total-living-space" min="50" value="350" onchange="updateCounterInput(this)">
+                        <button type="button" onclick="increment('total-living-space', 10, 99999)">+</button>
+                    </div>
+                    <div id="total-living-space-error" class="error-message hidden">Bitte geben Sie die Gesamtwohnfläche an.</div>
+                </div>
+                <div>
+                    <label for="income" class="block text-base font-medium text-gray-700 mb-1">Monatliche Kaltmieteinnahmen (€)</label>
+                    <div class="number-counter" id="income-counter-wrapper">
+                        <button type="button" onclick="decrement('income', 100, 0)">-</button>
+                        <input type="number" id="income" name="income" min="0" step="100" value="2500" onchange="updateCounterInput(this)">
+                        <button type="button" onclick="increment('income', 100, 999999)">+</button>
+                    </div>
+                    <div id="income-error" class="error-message hidden">Bitte geben Sie die monatlichen Mieteinnahmen an.</div>
+                </div>
+                <div>
+                    <label for="plot-area" class="block text-base font-medium text-gray-700 mb-1">Grundstücksfläche (m²)</label>
+                    <div class="number-counter" id="plot-area-counter-wrapper">
+                        <button type="button" onclick="decrement('plot-area', 10, 10)">-</button>
+                        <input type="number" id="plot-area" name="plot-area" min="10" value="700" onchange="updateCounterInput(this)">
+                        <button type="button" onclick="increment('plot-area', 10, 99999)">+</button>
+                    </div>
+                    <div id="plot-area-error" class="error-message hidden">Bitte geben Sie die Grundstücksfläche an.</div>
+                </div>
+            `
+        };
+
+
+        // Initialize the form
+        function initForm() {
+            applyDesignConfig(); // Apply design settings first
+
+            form = document.getElementById('valuation-form');
+            progressBar = document.querySelector('.progress-bar');
+            stepCounter = document.querySelector('.step-counter');
+            prevBtn = document.getElementById('prev-btn');
+            nextBtn = document.getElementById('next-btn');
+            submitBtn = document.getElementById('submit-btn');
+
+            updatePageVisibility();
+            updateNavigationButtons();
+            updateProgress();
+            
+            // Disable next button until property type is selected on page 1
+            if (currentPage === 1) {
+                nextBtn.disabled = true;
+                nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            clearValidationErrors();
+        }
+
+        // Show current page and hide others
+        function updatePageVisibility() {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(`page${currentPage}`).classList.add('active');
+            clearValidationErrors(); // Clear errors when page changes
+        }
+
+        // Update navigation buttons
+        function updateNavigationButtons() {
+            if (currentPage === 1) {
+                prevBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+            }
+
+            if (currentPage === maxPage) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+
+        // Update progress bar and counter
+        function updateProgress() {
+            const progressPercentage = (currentPage / maxPage) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+            stepCounter.textContent = `Schritt ${currentPage} von ${maxPage}`;
+        }
+
+        // Go to next page
+        function nextPage() {
+            if (validateCurrentPage()) {
+                currentPage++;
+                updatePageVisibility();
+                updateNavigationButtons();
+                updateProgress();
+
+                // Special handling for page 2 (subtype) and page 4 (dynamic details)
+                if (currentPage === 2) {
+                    populateSubtypeOptions();
+                } else if (currentPage === 4) {
+                    populatePropertyDetails();
+                }
+            }
+        }
+
+        // Go to previous page
+        function prevPage() {
+            currentPage--;
+            updatePageVisibility();
+            updateNavigationButtons();
+            updateProgress();
+        }
+
+        // Helper to show error
+        function showValidationError(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                // For option-cards, add class to the wrapper
+                if (element.classList.contains('grid')) { // This targets the grid container for options
+                    element.classList.add('input-error');
+                } else if (element.classList.contains('number-counter')) { // For number counters
+                    element.classList.add('input-error');
+                }
+                else { // For regular input fields
+                    element.classList.add('input-error');
+                }
+                
+                const errorMessageElement = document.getElementById(elementId + '-error');
+                if (errorMessageElement) {
+                    errorMessageElement.textContent = message;
+                    errorMessageElement.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Helper to hide error
+        function hideValidationError(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                if (element.classList.contains('grid')) {
+                    element.classList.remove('input-error');
+                } else if (element.classList.contains('number-counter')) {
+                    element.classList.remove('input-error');
+                }
+                else {
+                    element.classList.remove('input-error');
+                }
+                
+                const errorMessageElement = document.getElementById(elementId + '-error');
+                if (errorMessageElement) {
+                    errorMessageElement.classList.add('hidden');
+                }
+            }
+        }
+
+        // Clear all validation errors on the current page
+        function clearValidationErrors() {
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            document.querySelectorAll('.error-message').forEach(el => el.classList.add('hidden'));
+        }
+
+        // Validate current page before proceeding
+        function validateCurrentPage() {
+            clearValidationErrors(); // Clear previous errors first
+            let isValid = true;
+
+            // Page 1: Property Type
+            if (currentPage === 1) {
+                if (!formData.propertyType) {
+                    showValidationError('property-type-options', 'Bitte wählen Sie einen Immobilientyp aus.');
+                    isValid = false;
+                }
+            }
+
+            // Page 2: Property Subtype
+            else if (currentPage === 2) {
+                if (!formData.propertySubtype) {
+                    showValidationError('subtype-options', 'Bitte wählen Sie eine genauere Art der Immobilie aus.');
+                    isValid = false;
+                }
+            }
+
+            // Page 3: Address
+            else if (currentPage === 3) {
+                const street = document.getElementById('street');
+                const zip = document.getElementById('zip');
+                const city = document.getElementById('city');
+
+                if (!street.value.trim()) {
+                    showValidationError('street', 'Bitte geben Sie die Straße und Hausnummer an.');
+                    isValid = false;
+                }
+                if (!zip.value.trim()) {
+                    showValidationError('zip', 'Bitte geben Sie die Postleitzahl an.');
+                    isValid = false;
+                }
+                if (!city.value.trim()) {
+                    showValidationError('city', 'Bitte geben Sie die Stadt an.');
+                    isValid = false;
+                }
+            }
+
+            // Page 4: Dynamic Property Details
+            else if (currentPage === 4) {
+                const propertyType = formData.propertyType;
+                if (propertyType === 'haus' || propertyType === 'wohnung') {
+                    const livingSpace = document.getElementById('living-space');
+                    const rooms = document.getElementById('rooms');
+
+                    if (!livingSpace.value || parseInt(livingSpace.value) < parseInt(livingSpace.min)) {
+                        showValidationError('living-space-counter-wrapper', 'Bitte geben Sie eine gültige Wohnfläche an.');
+                        isValid = false;
+                    }
+                    if (!rooms.value || parseInt(rooms.value) < parseInt(rooms.min)) {
+                        showValidationError('rooms-counter-wrapper', 'Bitte geben Sie die Anzahl der Zimmer an.');
+                        isValid = false;
+                    }
+                    if (propertyType === 'haus') {
+                        const plotArea = document.getElementById('plot-area');
+                        if (!plotArea.value || parseInt(plotArea.value) < parseInt(plotArea.min)) {
+                            showValidationError('plot-area-counter-wrapper', 'Bitte geben Sie die Grundstücksfläche an.');
+                            isValid = false;
+                        }
+                    }
+                    // Floor is optional for Wohnung, so no strict validation here unless it's empty and required
+                    // else if (propertyType === 'wohnung') {
+                    //     const floor = document.getElementById('floor');
+                    //     if (floor && (floor.value === '' || parseInt(floor.value) < parseInt(floor.min))) {
+                    //         showValidationError('floor-counter-wrapper', 'Bitte geben Sie die Etage an (0 für Erdgeschoss).');
+                    //         isValid = false;
+                    //     }
+                    // }
+                } else if (propertyType === 'mehrfamilienhaus') {
+                    const units = document.getElementById('units');
+                    const totalLivingSpace = document.getElementById('total-living-space');
+                    const income = document.getElementById('income');
+                    const plotArea = document.getElementById('plot-area');
+
+                    if (!units.value || parseInt(units.value) < parseInt(units.min)) {
+                        showValidationError('units-counter-wrapper', 'Bitte geben Sie die Anzahl der Wohneinheiten an.');
+                        isValid = false;
+                    }
+                    if (!totalLivingSpace.value || parseInt(totalLivingSpace.value) < parseInt(totalLivingSpace.min)) {
+                        showValidationError('total-living-space-counter-wrapper', 'Bitte geben Sie die Gesamtwohnfläche an.');
+                        isValid = false;
+                    }
+                    if (income && (income.value === '' || parseInt(income.value) < parseInt(income.min))) {
+                        showValidationError('income-counter-wrapper', 'Bitte geben Sie die monatlichen Mieteinnahmen an.');
+                        isValid = false;
+                    }
+                    if (!plotArea.value || parseInt(plotArea.value) < parseInt(plotArea.min)) {
+                        showValidationError('plot-area-counter-wrapper', 'Bitte geben Sie die Grundstücksfläche an.');
+                        isValid = false;
+                    }
+                }
+            }
+
+            // Page 5: Features (Baujahr)
+            else if (currentPage === 5) {
+                const constructionYear = document.getElementById('construction-year');
+                if (!constructionYear.value || parseInt(constructionYear.value) < parseInt(constructionYear.min) || parseInt(constructionYear.value) > parseInt(constructionYear.max)) {
+                    showValidationError('construction-year-counter-wrapper', 'Bitte geben Sie ein gültiges Baujahr an.');
+                    isValid = false;
+                }
+            }
+
+            // Page 6: Contact
+            else if (currentPage === 6) {
+                const email = document.getElementById('email');
+                const consent = document.getElementById('contact-consent');
+
+                if (!email.value.trim() || !email.value.includes('@') || !email.value.includes('.')) {
+                    showValidationError('email', 'Bitte geben Sie eine gültige E-Mail-Adresse an.');
+                    isValid = false;
+                }
+                if (!consent.checked) {
+                    showValidationError('contact-consent', 'Bitte stimmen Sie der Datenverwendung zu.');
+                    isValid = false;
+                }
+            }
+
+            // Page 7: Owner Info
+            else if (currentPage === 7) {
+                const ownerName = document.getElementById('owner-name');
+                const ownerStreet = document.getElementById('owner-street');
+                const ownerZip = document.getElementById('owner-zip');
+                const ownerCity = document.getElementById('owner-city');
+
+                if (!ownerName.value.trim()) {
+                    showValidationError('owner-name', 'Bitte geben Sie Ihren Namen an.');
+                    isValid = false;
+                }
+                if (!ownerStreet.value.trim()) {
+                    showValidationError('owner-street', 'Bitte geben Sie Ihre Straße und Hausnummer an.');
+                    isValid = false;
+                }
+                if (!ownerZip.value.trim()) {
+                    showValidationError('owner-zip', 'Bitte geben Sie Ihre Postleitzahl an.');
+                    isValid = false;
+                }
+                if (!ownerCity.value.trim()) {
+                    showValidationError('owner-city', 'Bitte geben Sie Ihre Stadt an.');
+                    isValid = false;
+                }
+            }
+
+            // Page 8: Sale Reason
+            else if (currentPage === 8) {
+                if (!formData.saleReason) {
+                    showValidationError('sale-reason-options', 'Bitte wählen Sie einen Grund aus.');
+                    isValid = false;
+                } else if (formData.saleReason === 'anderer-grund') {
+                    const otherReason = document.getElementById('other-reason');
+                    if (!otherReason.value.trim()) {
+                        showValidationError('other-reason', 'Bitte beschreiben Sie den Grund.');
+                        isValid = false;
+                    }
+                }
+            }
+
+            return isValid;
+        }
+
+        // Select an option (used for property type, subtype, sale reason)
+        function selectOption(element, fieldName) {
+            document.querySelectorAll(`.option-card[data-value][onclick*="${fieldName}"]`).forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            element.classList.add('selected');
+            formData[fieldName] = element.dataset.value;
+            
+            if (fieldName === 'propertyType') {
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                hideValidationError('property-type-options');
+            } else if (fieldName === 'propertySubtype') {
+                hideValidationError('subtype-options');
+            } else if (fieldName === 'saleReason') {
+                hideValidationError('sale-reason-options');
+                const otherReasonContainer = document.getElementById('other-reason-container');
+                if (formData.saleReason === 'anderer-grund') {
+                    otherReasonContainer.classList.remove('hidden');
+                } else {
+                    otherReasonContainer.classList.add('hidden');
+                    document.getElementById('other-reason').value = '';
+                    hideValidationError('other-reason');
+                }
+            }
+        }
+
+        // Populate subtype options based on property type selection
+        function populateSubtypeOptions() {
+            const propertyType = formData.propertyType;
+            const subtypeOptionsContainer = document.getElementById('subtype-options');
+            const propertyTypeLabel = document.getElementById('property-type-label');
+
+            propertyTypeLabel.textContent = propertyType === 'haus' ? 'Haus' : 
+                                          propertyType === 'wohnung' ? 'Wohnung' : 
+                                          'Mehrfamilienhaus';
+
+            subtypeOptionsContainer.innerHTML = '';
+
+            if (subtypes[propertyType]) {
+                subtypes[propertyType].forEach(subtype => {
+                    const optionHTML = `
+                        <div class="option-card cursor-pointer p-6 border-2 border-gray-200" data-value="${subtype.value}" onclick="selectOption(this, 'propertySubtype')">
+                            <div class="flex items-center">
+                                <div class="mr-4">
+                                    <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1600&q=80" alt="${subtype.description}" class="property-img">
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg text-gray-800">${subtype.label}</h3>
+                                    <p class="text-sm text-gray-500">${subtype.description}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    subtypeOptionsContainer.innerHTML += optionHTML;
+                });
+            } else {
+                subtypeOptionsContainer.innerHTML = '<p class="text-gray-500">Keine Untertypen für diesen Immobilientyp verfügbar.</p>';
+            }
+            applyDesignConfigToDynamicContent(); // Apply design to newly added elements
+        }
+
+        // Populate dynamic property details based on property type
+        function populatePropertyDetails() {
+            const propertyType = formData.propertyType;
+            const dynamicDetailsContainer = document.getElementById('dynamic-property-details');
+            
+            dynamicDetailsContainer.innerHTML = propertyDetailsFields[propertyType] || '<p class="text-gray-500">Bitte wählen Sie zuerst einen Immobilientyp aus.</p>';
+            applyDesignConfigToDynamicContent(); // Apply design to newly added elements
+        }
+
+        // Function to apply design config to dynamically loaded content
+        function applyDesignConfigToDynamicContent() {
+            const root = document.documentElement;
+            const inputBorderRadius = root.style.getPropertyValue('--input-border-radius');
+            const primaryColor = root.style.getPropertyValue('--primary-color');
+            const borderRadius = root.style.getPropertyValue('--border-radius');
+
+            document.querySelectorAll('#dynamic-property-details input[type="number"], #dynamic-property-details .number-counter, #dynamic-property-details input[type="text"], #dynamic-property-details input[type="email"], #dynamic-property-details input[type="tel"], #dynamic-property-details textarea').forEach(el => {
+                el.style.borderRadius = inputBorderRadius;
+            });
+            document.querySelectorAll('#dynamic-property-details input[type="checkbox"]').forEach(el => {
+                el.style.borderRadius = inputBorderRadius;
+                el.style.color = primaryColor;
+            });
+            document.querySelectorAll('#subtype-options .option-card').forEach(el => {
+                el.style.borderRadius = borderRadius;
+            });
+            document.querySelectorAll('#subtype-options .property-img').forEach(el => {
+                el.style.borderRadius = borderRadius;
+            });
+            document.querySelectorAll('.option-card').forEach(el => {
+                el.style.borderRadius = borderRadius;
+            });
+            document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+                el.style.borderRadius = inputBorderRadius;
+            });
+        }
+
+
+        // Number Counter Functions
+        function increment(id, step, max) {
+            const input = document.getElementById(id);
+            let value = parseInt(input.value) || 0;
+            value += step;
+            if (value > max) value = max;
+            input.value = value;
+            hideValidationError(id + '-counter-wrapper'); // Hide error on interaction
+        }
+
+        function decrement(id, step, min) {
+            const input = document.getElementById(id);
+            let value = parseInt(input.value) || 0;
+            value -= step;
+            if (value < min) value = min;
+            input.value = value;
+            hideValidationError(id + '-counter-wrapper'); // Hide error on interaction
+        }
+
+        function updateCounterInput(inputElement) {
+            let value = parseInt(inputElement.value);
+            const min = parseInt(inputElement.min);
+            const max = parseInt(inputElement.max);
+
+            if (isNaN(value)) {
+                inputElement.value = min;
+            } else if (value < min) {
+                inputElement.value = min;
+            } else if (value > max) {
+                inputElement.value = max;
+            }
+            hideValidationError(inputElement.id + '-counter-wrapper');
+        }
+
+
+        // Submit the form
+        function submitForm() {
+            if (validateCurrentPage()) {
+                collectFormData();
+                console.log('Form data submitted:', formData);
+                
+                alert('Vielen Dank! Ihre Bewertungsanfrage wurde erfolgreich übermittelt. Wir werden uns bald bei Ihnen melden.');
+                
+                form.reset();
+                for (const key in formData) {
+                    if (formData.hasOwnProperty(key)) {
+                        delete formData[key];
+                    }
+                }
+                currentPage = 1;
+                initForm();
+            }
+        }
+
+        // Collect all form data
+        function collectFormData() {
+            // Page 1 & 2 data is already in formData.propertyType and formData.propertySubtype
+
+            // Page 3: Address
+            formData.street = document.getElementById('street').value;
+            formData.zip = document.getElementById('zip').value;
+            formData.city = document.getElementById('city').value;
+
+            // Page 4: Dynamic Property Details
+            const propertyType = formData.propertyType;
+            if (propertyType === 'haus' || propertyType === 'wohnung') {
+                formData.livingSpace = document.getElementById('living-space').value;
+                formData.rooms = document.getElementById('rooms').value;
+                if (propertyType === 'haus') {
+                    formData.plotArea = document.getElementById('plot-area').value;
+                } else if (propertyType === 'wohnung') {
+                    // Floor is optional, only collect if element exists
+                    const floorElement = document.getElementById('floor');
+                    if (floorElement) {
+                        formData.floor = floorElement.value;
+                    }
+                }
+            } else if (propertyType === 'mehrfamilienhaus') {
+                formData.units = document.getElementById('units').value;
+                formData.totalLivingSpace = document.getElementById('total-living-space').value;
+                formData.income = document.getElementById('income').value;
+                formData.plotArea = document.getElementById('plot-area').value;
+            }
+
+            // Page 5: Features
+            formData.constructionYear = document.getElementById('construction-year').value;
+            formData.condition = document.getElementById('condition').value;
+            formData.quality = document.getElementById('quality').value;
+            
+            formData.features = [];
+            document.querySelectorAll('input[name="features"]:checked').forEach(checkbox => {
+                formData.features.push(checkbox.value);
+            });
+
+            // Page 6: Contact
+            formData.email = document.getElementById('email').value;
+            formData.phone = document.getElementById('phone').value;
+            formData.contactConsent = document.getElementById('contact-consent').checked;
+
+            // Page 7: Owner Info (New)
+            formData.ownerName = document.getElementById('owner-name').value;
+            formData.ownerStreet = document.getElementById('owner-street').value;
+            formData.ownerZip = document.getElementById('owner-zip').value;
+            formData.ownerCity = document.getElementById('owner-city').value;
+
+            // Page 8: Sale Reason (now page 8)
+            if (formData.saleReason === 'anderer-grund') {
+                formData.otherReason = document.getElementById('other-reason').value;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initForm);
+    </script>
+</body>
+</html>
