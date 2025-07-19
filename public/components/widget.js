@@ -20,7 +20,7 @@ class CasaLeadWidget extends HTMLElement {
           border: none;
         }
       </style>
-      <iframe src="https://deine-domain.de/widgets/${widget}?company=${company}" loading="lazy"></iframe>
+      <iframe src="https://casalead.de/widgets/${widget}?company=${company}" loading="lazy"></iframe>
     `
   }
 }
