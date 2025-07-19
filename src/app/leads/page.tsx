@@ -12,7 +12,8 @@ interface Lead {
   art: string
   unterart: string
   status: string
-  json_daten?: any
+  json_daten?: Record<string, any>
+
 }
 
 export default function LeadsPage() {
