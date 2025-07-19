@@ -29,13 +29,23 @@
         document.documentElement.style.setProperty('--border-radius', settings.border_radius);
         document.documentElement.style.setProperty('--input-border-radius', settings.input_border_radius);
         document.documentElement.style.setProperty('--font-family', settings.schriftart);
+
+        // Calculate RGB for primary color for box-shadows (needed early for CSS)
+        const hexToRgb = hex => {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null;
+        };
+        const rgb = hexToRgb(settings.farbe);
+        if (rgb) {
+            document.documentElement.style.setProperty('--primary-color-rgb', rgb);
+        }
     </script>
 
     <style id="theme-style">
-        /* dein bestehender CSS-Code */
+        /* Dein bestehender CSS-Code */
         body {
             font-family: var(--font-family);
-            background-color: var(--primary-color-light);
+            background-color: var(--primary-color-light); /* Nutzt die dynamische Variable */
             color: #1f2937;
             margin: 0;
             padding: 2rem;
@@ -43,23 +53,24 @@
 
         .header {
             font-size: 1.5rem;
-            color: var(--primary-color); /* Angepasst, um die primäre Farbe zu verwenden */
+            color: var(--primary-color);
         }
 
-        button {
+        /* Die allgemeine button Regel kann entfernt werden, da spezifischere Regeln existieren */
+        /* button {
             background-color: var(--primary-color);
+        } */
+
+        /* Die :root Variablen werden nun direkt über das JavaScript oben gesetzt,
+           daher können die Kommentare hier entfernt werden, um Klarheit zu schaffen. */
+        :root {
+            /* --primary-color, --primary-color-dark, --primary-color-light,
+               --border-radius, --input-border-radius, --font-family, --primary-color-rgb
+               werden alle dynamisch gesetzt. */
         }
 
-        :root {
-            /* Diese Variablen werden nun direkt über das JavaScript oben gesetzt */
-            /* --primary-color: ${settings.farbe}; */
-            /* --primary-color-dark: ${settings.farbe_dunkel}; */
-            /* --primary-color-light: ${settings.farbe_hell}; */
-            /* --border-radius: ${settings.border_radius}; */
-            /* --input-border-radius: ${settings.input_border_radius}; */
-            /* --font-family: ${settings.schriftart}; */
-        }
         .btn {
+            /* Diese Regel ist generisch und wird von spezifischeren Regeln überschrieben */
             background: var(--primary-color);
             border-radius: var(--border-radius);
             color: white;
@@ -70,7 +81,7 @@
         }
 
         input, select {
-            border-radius: var(--input-border-radius);
+            border-radius: var(--input-border-radius); /* Nutzt die dynamische Variable */
             padding: 0.75rem;
             border: 1px solid #ccc;
             width: 100%;
@@ -81,11 +92,7 @@
             width: 80px;
             height: 80px;
             object-fit: cover;
-            border-radius: var(--border-radius);
-        }
-        body {
-            font-family: var(--font-family);
-            background-color: #f8fafc; /* Dies sollte auch von --primary-color-light überschrieben werden, wenn es im body-Selektor ist */
+            border-radius: var(--border-radius); /* Nutzt die dynamische Variable */
         }
         .page {
             display: none;
@@ -107,7 +114,7 @@
             transition: all 0.25s ease-in-out;
             cursor: pointer;
             position: relative;
-            border-radius: var(--border-radius);
+            border-radius: var(--border-radius); /* Nutzt die dynamische Variable */
         }
         .option-card:hover {
             transform: translateY(-3px);
@@ -124,16 +131,27 @@
             background-color: var(--primary-color);
             border-color: var(--primary-color);
             color: white;
-            border-radius: var(--border-radius);
+            border-radius: var(--border-radius); /* Nutzt die dynamische Variable */
             transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
         }
         .btn-primary:hover {
-            background-color: var(--primary-color-dark);
-            border-color: var(--primary-color-dark);
+            background-color: var(--primary-color-dark); /* Nutzt die dunklere Primärfarbe */
+            border-color: var(--primary-color-dark); /* Randfarbe anpassen */
         }
+
         .btn-secondary {
-            border-radius: var(--border-radius);
+            background-color: white; /* Standard weißer Hintergrund */
+            border-color: var(--primary-color); /* Standard Rand in Primärfarbe */
+            color: var(--primary-color); /* Standard Text in Primärfarbe */
+            border-radius: var(--border-radius); /* Nutzt die dynamische Variable */
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
         }
+        .btn-secondary:hover {
+            background-color: var(--primary-color); /* Hover Hintergrund in Primärfarbe */
+            border-color: var(--primary-color); /* Hover Rand in Primärfarbe */
+            color: white; /* Hover Text weiß */
+        }
+
 
         /* Custom range slider styling */
         input[type="range"] {
@@ -181,7 +199,7 @@
             display: flex;
             align-items: center;
             border: 1px solid #d1d5db;
-            border-radius: var(--input-border-radius);
+            border-radius: var(--input-border-radius); /* Nutzt die dynamische Variable */
             overflow: hidden;
             transition: border-color 0.2s ease-in-out;
         }
@@ -221,7 +239,7 @@
 
         /* Input fields */
         input[type="text"], input[type="number"], input[type="email"], input[type="tel"], textarea {
-            border-radius: var(--input-border-radius);
+            border-radius: var(--input-border-radius); /* Nutzt die dynamische Variable */
             transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
         input[type="text"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="tel"]:focus, textarea:focus {
@@ -229,7 +247,7 @@
             box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.2);
         }
         input[type="checkbox"] {
-            border-radius: var(--input-border-radius);
+            border-radius: var(--input-border-radius); /* Nutzt die dynamische Variable */
             color: var(--primary-color);
         }
 
@@ -272,7 +290,7 @@
             <div class="page active" id="page1">
                 <h2 class="text-2xl font-bold mb-6 text-gray-700">Um welchen Immobilientyp handelt es sich?</h2>
                 <p class="text-gray-600 mb-8">Wählen Sie die Kategorie, die am besten zu Ihrer Immobilie passt, um eine präzise Bewertung zu erhalten.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="property-type-options">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="property-type-options"> <!-- HIER GEÄNDERT: md:grid-cols-3 -->
                     <div class="option-card cursor-pointer p-6 border-2 border-gray-200" data-value="haus" onclick="selectOption(this, 'propertyType')">
                         <div class="flex items-center">
                             <div class="mr-4">
@@ -557,10 +575,12 @@
 
             <!-- Navigation Buttons -->
             <div class="mt-10 flex justify-between">
-                <button type="button" onclick="prevPage()" class="hidden px-7 py-3 border border-gray-300 btn-secondary text-gray-700 font-semibold hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out" id="prev-btn">
+                <!-- Angepasste Tailwind-Klassen für den Zurück-Button -->
+                <button type="button" onclick="prevPage()" class="hidden px-7 py-3 border btn-secondary font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out" id="prev-btn">
                     <i class="fas fa-arrow-left mr-2"></i> Zurück
                 </button>
-                <button type="button" onclick="nextPage()" class="ml-auto px-7 py-3 btn-primary font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out" id="next-btn">
+                <!-- Angepasste Tailwind-Klassen für den Weiter-Button -->
+                <button type="button" onclick="nextPage()" class="ml-auto px-7 py-3 btn-primary font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out" id="next-btn">
                     Weiter <i class="fas fa-arrow-right ml-2"></i>
                 </button>
                 <button type="button" class="hidden ml-auto px-7 py-3 bg-green-600 border border-transparent rounded-lg text-white font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200 ease-in-out" id="submit-btn" onclick="submitForm()">
@@ -572,37 +592,19 @@
 
     <script>
         // --- DESIGN CONFIGURATION ---
+        // Die settings werden bereits im ersten Script-Block aus den URL-Parametern gelesen
+        // und die CSS-Variablen direkt auf document.documentElement gesetzt.
+        // Diese designConfig ist daher nur noch für die enableAnimations relevant
+        // und die applyDesignConfig Funktion wird angepasst.
         const designConfig = {
-            // Diese Werte werden nun von den URL-Parametern überschrieben
-            primaryColor: settings.farbe,
-            primaryColorDark: settings.farbe_dunkel,
-            primaryColorLight: settings.farbe_hell,
-            borderRadius: settings.border_radius,
-            inputBorderRadius: settings.input_border_radius, // Neuer Parameter für input_border_radius
-            fontFamily: settings.schriftart,
             enableAnimations: true, // true or false
         };
 
-        // Function to apply design configurations
+        // Function to apply design configurations (mainly for dynamic content and animations)
         function applyDesignConfig() {
             const root = document.documentElement;
-            root.style.setProperty('--primary-color', designConfig.primaryColor);
-            root.style.setProperty('--primary-color-dark', designConfig.primaryColorDark);
-            root.style.setProperty('--primary-color-light', designConfig.primaryColorLight);
-
-            // Calculate RGB for primary color for box-shadows
-            const hexToRgb = hex => {
-                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-                return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null;
-            };
-            const rgb = hexToRgb(designConfig.primaryColor);
-            if (rgb) {
-                root.style.setProperty('--primary-color-rgb', rgb);
-            }
-
-            root.style.setProperty('--border-radius', designConfig.borderRadius);
-            root.style.setProperty('--input-border-radius', designConfig.inputBorderRadius); // Verwende den neuen Parameter
-            root.style.setProperty('--font-family', designConfig.fontFamily);
+            // Die Hauptfarben und Radien werden bereits im initialen Script gesetzt.
+            // Hier stellen wir nur sicher, dass dynamisch geladene Inhalte die Stile übernehmen.
 
             // Apply animation settings
             if (!designConfig.enableAnimations) {
@@ -611,6 +613,8 @@
                     el.style.animation = 'none';
                 });
             }
+            // Sicherstellen, dass dynamisch geladene Inhalte die korrekten Radien und Farben erhalten
+            applyDesignConfigToDynamicContent();
         }
 
         // --- FORM LOGIC ---
@@ -831,12 +835,12 @@
             const element = document.getElementById(elementId);
             if (element) {
                 // For option-cards, add class to the wrapper
-                if (element.classList.contains('grid')) {
+                if (element.classList.contains('grid')) { // This targets the grid container for option cards
                     element.classList.add('input-error');
                 } else if (element.classList.contains('number-counter')) {
                     element.classList.add('input-error');
                 }
-                else {
+                else { // For regular input fields
                     element.classList.add('input-error');
                 }
                 
@@ -1032,6 +1036,8 @@
         function selectOption(element, fieldName) {
             document.querySelectorAll(`.option-card[data-value][onclick*="${fieldName}"]`).forEach(el => {
                 el.classList.remove('selected');
+                // Remove input-error class from the option-card itself if it was set
+                el.classList.remove('input-error');
             });
             
             element.classList.add('selected');
@@ -1040,11 +1046,11 @@
             if (fieldName === 'propertyType') {
                 nextBtn.disabled = false;
                 nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                hideValidationError('property-type-options');
+                hideValidationError('property-type-options'); // Hide error for the grid container
             } else if (fieldName === 'propertySubtype') {
-                hideValidationError('subtype-options');
+                hideValidationError('subtype-options'); // Hide error for the grid container
             } else if (fieldName === 'saleReason') {
-                hideValidationError('sale-reason-options');
+                hideValidationError('sale-reason-options'); // Hide error for the grid container
                 const otherReasonContainer = document.getElementById('other-reason-container');
                 if (formData.saleReason === 'anderer-grund') {
                     otherReasonContainer.classList.remove('hidden');
@@ -1107,22 +1113,36 @@
             const primaryColor = root.style.getPropertyValue('--primary-color');
             const borderRadius = root.style.getPropertyValue('--border-radius');
 
-            document.querySelectorAll('#dynamic-property-details input[type="number"], #dynamic-property-details .number-counter, #dynamic-property-details input[type="text"], #dynamic-property-details input[type="email"], #dynamic-property-details input[type="tel"], #dynamic-property-details textarea').forEach(el => {
+            // Apply border-radius to dynamically created number-counter inputs
+            document.querySelectorAll('#dynamic-property-details input[type="number"]').forEach(el => {
+                el.style.borderRadius = inputBorderRadius; // This might be redundant if number-counter handles it
+            });
+            // Apply border-radius to the number-counter wrapper itself
+            document.querySelectorAll('#dynamic-property-details .number-counter').forEach(el => {
                 el.style.borderRadius = inputBorderRadius;
             });
+            // Apply border-radius to other input types if they were dynamically loaded
+            document.querySelectorAll('#dynamic-property-details input[type="text"], #dynamic-property-details input[type="email"], #dynamic-property-details input[type="tel"], #dynamic-property-details textarea').forEach(el => {
+                el.style.borderRadius = inputBorderRadius;
+            });
+            // Apply border-radius and color to checkboxes
             document.querySelectorAll('#dynamic-property-details input[type="checkbox"]').forEach(el => {
                 el.style.borderRadius = inputBorderRadius;
-                el.style.color = primaryColor;
+                el.style.color = primaryColor; // This sets the checkmark color
             });
+
+            // Apply border-radius to option cards and their images in subtype options
             document.querySelectorAll('#subtype-options .option-card').forEach(el => {
                 el.style.borderRadius = borderRadius;
             });
             document.querySelectorAll('#subtype-options .property-img').forEach(el => {
                 el.style.borderRadius = borderRadius;
             });
+            // Ensure all option cards (including page 1 and 8) have the correct border-radius
             document.querySelectorAll('.option-card').forEach(el => {
                 el.style.borderRadius = borderRadius;
             });
+            // Ensure all checkboxes (including page 5) have the correct border-radius
             document.querySelectorAll('input[type="checkbox"]').forEach(el => {
                 el.style.borderRadius = inputBorderRadius;
             });
@@ -1248,13 +1268,20 @@
       const styleTag = document.getElementById('theme-style');
 
       if (styleTag) {
-        styleTag.textContent = styleTag.textContent
-          .replace(/background-color:\s*[^;]+;/g, `background-color: ${backgroundColor || 'white'};`)
-          .replace(/color:\s*[^;]+;/g, `color: ${textColor || 'black'};`)
-          .replace(/\.header\s*{[^}]*}/g, `.header {
-            font-size: 1.5rem;
-            color: ${primaryColor || 'var(--primary-color)'}; /* Hier auch die CSS-Variable nutzen */
-          }`);
+        // Update CSS variables directly on the root element
+        document.documentElement.style.setProperty('--primary-color', primaryColor);
+        // Recalculate dark and light variants if needed, or expect them from the message
+        // For simplicity, assuming primaryColorDark and primaryColorLight are also passed or derived
+        // If not passed, you'd need a function to derive them from primaryColor here.
+        // For now, let's assume they are passed or the existing derivation logic is sufficient.
+        
+        // Update body background and text color using the new variables
+        // The CSS already uses var(--primary-color-light) and a fixed text color.
+        // If backgroundColor and textColor from the message should override, apply them directly.
+        document.body.style.backgroundColor = backgroundColor || 'var(--primary-color-light)';
+        document.body.style.color = textColor || '#1f2937';
+
+        // The .header color is already set to var(--primary-color) in the CSS, so it will update automatically.
       }
     }
   });
