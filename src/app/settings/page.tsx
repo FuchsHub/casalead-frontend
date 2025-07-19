@@ -6,12 +6,12 @@ import { supabase } from '@/utils/supabase/client'
 export default function SettingsPage() {
   const [firmaId, setFirmaId] = useState('')
   const [config, setConfig] = useState({
-    farbe: '#3b82f6',
-    farbe_dunkel: '#2563eb',
+    farbe: '#4A90E2', // Neue Primärfarbe
+    farbe_dunkel: '#50E3C2', // Neue dunkle Primärfarbe
     farbe_hell: '#eff6ff',
     border_radius: '0.5rem',
     input_border_radius: '0.5rem',
-    schriftart: "'Inter', sans-serif",
+    schriftart: "'Poppins', sans-serif", // Neue Schriftart
   })
   const [copySuccess, setCopySuccess] = useState(false)
 
@@ -38,12 +38,12 @@ export default function SettingsPage() {
         .single()
 
       if (firma) setConfig({
-        farbe: firma.farbe || '#3b82f6',
-        farbe_dunkel: firma.farbe_dunkel || '#2563eb',
+        farbe: firma.farbe || '#4A90E2',
+        farbe_dunkel: firma.farbe_dunkel || '#50E3C2',
         farbe_hell: firma.farbe_hell || '#eff6ff',
         border_radius: firma.border_radius || '0.5rem',
         input_border_radius: firma.input_border_radius || '0.5rem',
-        schriftart: firma.schriftart || "'Inter', sans-serif",
+        schriftart: firma.schriftart || "'Poppins', sans-serif",
       })
     }
 
@@ -70,7 +70,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-8 space-y-6 max-w-3xl">
+    <div className="p-8 space-y-6 max-w-3xl bg-gray-100">
       <h1 className="text-2xl font-semibold">Einstellungen</h1>
 
       <div className="grid grid-cols-2 gap-6 bg-white shadow rounded-xl p-6">
@@ -110,7 +110,7 @@ export default function SettingsPage() {
         />
         <button
           onClick={handleCopy}
-          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="mt-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-green-400 text-white rounded hover:bg-blue-700 transition duration-300"
         >
           {copySuccess ? 'Kopiert!' : 'In Zwischenablage kopieren'}
         </button>
