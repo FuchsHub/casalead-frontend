@@ -8,28 +8,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <script>
-    const params = new URLSearchParams(window.location.search);
-    const company = params.get("company") || "default";
+  
+    <style id="theme-style">
+        /* dein bestehender CSS-Code */
+        body {
+            font-family: Inter, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            color: black;
+        }
 
-    fetch(`https://your-supabase-url.supabase.co/rest/v1/firmen?name=eq.${company}`, {
-        headers: {
-        apikey: "public-anon-key",
-        Authorization: "Bearer public-anon-key",
-        },
-    })
-        .then(res => res.json())
-        .then(data => {
-        if (data[0] && data[0].farbe) {
-            document.documentElement.style.setProperty('--primary-color', data[0].farbe);
+        .header {
+            font-size: 1.5rem;
+            color: #000;
         }
-        });
-    </script>
-   <style>
-        /* CSS Variables for easy theming */
         button {
-            background-color: var(--primary-color, #0070f3);
+        background-color: var(--main-color);
         }
+
 
         :root {
             --primary-color: #3b82f6; /* Default Blue */
@@ -213,7 +210,9 @@
             border-color: #ef4444 !important;
         }
     </style>
+    
 </head>
+
 <body class="min-h-screen">
     <div class="max-w-3xl mx-auto px-4 py-8">
         <!-- Header -->
@@ -531,10 +530,10 @@
         </form>
     </div>
 
-    <script>
+    <script type="module">
         // --- DESIGN CONFIGURATION ---
         const designConfig = {
-            primaryColor: '#007bff', // Example: A nice blue. Use hex codes.
+            primaryColor: '#00ffff', // Example: A nice blue. Use hex codes.
             borderRadius: '0.75rem', // '0.25rem' (small), '0.5rem' (medium), '0.75rem' (large), '9999px' (pill/round)
             inputStyle: 'rounded', // 'rounded' or 'square'
             fontFamily: 'Inter, sans-serif', // e.g., 'Roboto, sans-serif', 'Open Sans, sans-serif'
@@ -1217,7 +1216,53 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', initForm);
+            import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+            const supabase = createClient(
+                import.meta.env.VITE_SUPABASE_URL,
+                import.meta.env.VITE_SUPABASE_ANON_KEY
+            );
+
+            const params = new URLSearchParams(window.location.search);
+            const company = params.get('company') || 'default';
+
+            const { data, error } = await supabase
+                .from('firmen')
+                .select('farbe')
+                .eq('name', company)
+                .single();
+
+            if (data?.farbe) {
+                document.documentElement.style.setProperty('--main-color', data.farbe);
+            } else {
+                console.warn('Keine Firmenfarbe gefunden:', error);
+            }
+
+            // Vorher vorhandene Zeile bleibt
+            document.addEventListener('DOMContentLoaded', initForm);
     </script>
+    <script>
+  window.addEventListener('message', (event) => {
+    if (event.data?.type === 'setColors') {
+      const { primaryColor, backgroundColor, textColor } = event.data.data;
+      const styleTag = document.getElementById('theme-style');
+
+      // Ersetze nur gezielt die Farbangaben
+      if (styleTag) {
+        styleTag.textContent = styleTag.textContent
+          .replace(/background-color:\s*[^;]+;/g, `background-color: ${backgroundColor || 'white'};`)
+          .replace(/color:\s*[^;]+;/g, `color: ${textColor || 'black'};`)
+          .replace(/\.header\s*{[^}]*}/g, `.header {
+            font-size: 1.5rem;
+            color: ${primaryColor || '#0070f3'};
+          }`);
+      }
+    }
+  });
+</script>
+
 </body>
+
+
+
 </html>
