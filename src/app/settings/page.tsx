@@ -5,12 +5,18 @@ import { supabase } from '@/utils/supabase/client'
 
 export default function SettingsPage() {
   const [firmaId, setFirmaId] = useState('')
-  const [farbe, setFarbe] = useState('#1d4ed8') // Standard-Blau
+  const [config, setConfig] = useState({
+    farbe: '#3b82f6',
+    farbe_dunkel: '#2563eb',
+    farbe_hell: '#eff6ff',
+    border_radius: '0.5rem',
+    input_border_radius: '0.5rem',
+    schriftart: "'Inter', sans-serif",
+  })
   const [copySuccess, setCopySuccess] = useState(false)
 
-  // Firma-ID + Farbe laden
   useEffect(() => {
-    const loadData = async () => {
+    const load = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       const user = session?.user
       if (!user) return
@@ -21,82 +27,103 @@ export default function SettingsPage() {
         .eq('id', user.id)
         .single()
 
-      if (nutzer?.firma_id) {
-        setFirmaId(nutzer.firma_id)
+      if (!nutzer?.firma_id) return
 
-        const { data: firma } = await supabase
-          .from('firmen')
-          .select('farbe')
-          .eq('id', nutzer.firma_id)
-          .single()
+      setFirmaId(nutzer.firma_id)
 
-        if (firma?.farbe) {
-          setFarbe(firma.farbe)
-        }
-      }
+      const { data: firma } = await supabase
+        .from('firmen')
+        .select('*')
+        .eq('id', nutzer.firma_id)
+        .single()
+
+      if (firma) setConfig({
+        farbe: firma.farbe || '#3b82f6',
+        farbe_dunkel: firma.farbe_dunkel || '#2563eb',
+        farbe_hell: firma.farbe_hell || '#eff6ff',
+        border_radius: firma.border_radius || '0.5rem',
+        input_border_radius: firma.input_border_radius || '0.5rem',
+        schriftart: firma.schriftart || "'Inter', sans-serif",
+      })
     }
 
-    loadData()
+    load()
   }, [])
 
-  // Farbe speichern, wenn geändert
-  const handleColorChange = async (newColor: string) => {
-    setFarbe(newColor)
-
+  const update = async (field: string, value: string) => {
+    setConfig(prev => ({ ...prev, [field]: value }))
     if (!firmaId) return
 
-    const { error } = await supabase
+    await supabase
       .from('firmen')
-      .update({ farbe: newColor })
+      .update({ [field]: value })
       .eq('id', firmaId)
-
-    if (error) {
-      alert('Fehler beim Speichern der Farbe')
-      console.error(error)
-    }
   }
 
-  const embedCode = `<script src="https://components.casalead.de/components/${firmaId}/casalead-widget/de-DE" defer></script>\n<casalead-widget widget="valuation"></casalead-widget>`
+  const embedCode = `<script src="https://components.casalead.de/components/${firmaId}/casalead-widget/de-DE" defer></script>
+<casalead-widget widget="valuation"></casalead-widget>`
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(embedCode)
-      setCopySuccess(true)
-      setTimeout(() => setCopySuccess(false), 2000)
-    } catch (err) {
-      alert('Fehler beim Kopieren')
-    }
+    await navigator.clipboard.writeText(embedCode)
+    setCopySuccess(true)
+    setTimeout(() => setCopySuccess(false), 2000)
   }
 
   return (
-    <div className="flex flex-col p-8 space-y-8 font-[Inter]">
-      <h1 className="text-2xl font-semibold text-gray-800">Einstellungen</h1>
+    <div className="p-8 space-y-6 max-w-3xl">
+      <h1 className="text-2xl font-semibold">Einstellungen</h1>
 
-      <div className="bg-white rounded-xl shadow p-6 space-y-6 max-w-2xl">
-        <div>
-          <label className="block mb-1 text-sm font-medium text-gray-700">Primärfarbe</label>
-          <input
-            type="color"
-            value={farbe}
-            onChange={(e) => handleColorChange(e.target.value)}
-            className="w-12 h-12 p-0 border-2 border-gray-300 rounded cursor-pointer"
-          />
-        </div>
+      <div className="grid grid-cols-2 gap-6 bg-white shadow rounded-xl p-6">
+        <label>
+          Primärfarbe
+          <input type="color" value={config.farbe} onChange={(e) => update('farbe', e.target.value)} />
+        </label>
+        <label>
+          Primärfarbe (dunkel)
+          <input type="color" value={config.farbe_dunkel} onChange={(e) => update('farbe_dunkel', e.target.value)} />
+        </label>
+        <label>
+          Primärfarbe (hell)
+          <input type="color" value={config.farbe_hell} onChange={(e) => update('farbe_hell', e.target.value)} />
+        </label>
+        <label>
+          Border-Radius
+          <input type="text" value={config.border_radius} onChange={(e) => update('border_radius', e.target.value)} />
+        </label>
+        <label>
+          Input-Radius
+          <input type="text" value={config.input_border_radius} onChange={(e) => update('input_border_radius', e.target.value)} />
+        </label>
+        <label>
+          Schriftart
+          <input type="text" value={config.schriftart} onChange={(e) => update('schriftart', e.target.value)} />
+        </label>
+      </div>
 
-        <div>
-          <label className="block mb-1 text-sm font-medium text-gray-700">Web-Komponente zum Einbinden</label>
-          <textarea
-            readOnly
-            className="w-full text-sm bg-gray-100 border border-gray-300 rounded-md p-4 font-mono"
-            rows={4}
-            value={embedCode}
-          />
-          <button
-            onClick={handleCopy}
-            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-          >
-            {copySuccess ? 'Kopiert!' : 'In Zwischenablage kopieren'}
-          </button>
+      <div>
+        <label className="block mb-2 text-sm font-medium">Widget-Code zum Einbinden</label>
+        <textarea
+          readOnly
+          rows={4}
+          className="w-full font-mono bg-gray-100 border border-gray-300 p-4 rounded"
+          value={embedCode}
+        />
+        <button
+          onClick={handleCopy}
+          className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          {copySuccess ? 'Kopiert!' : 'In Zwischenablage kopieren'}
+        </button>
+      </div>
+
+      <div>
+        <label className="block text-sm mb-2">Live-Vorschau</label>
+        <div className="border border-gray-200 rounded overflow-hidden shadow">
+          <iframe
+            src={`https://casalead.de/widgets/valuation.html?company=${firmaId}`}
+            className="w-full h-[800px]"
+            loading="lazy"
+          ></iframe>
         </div>
       </div>
     </div>

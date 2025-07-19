@@ -8,7 +8,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+    <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const company = urlParams.get("company") || "default";
+
+    fetch(`https://casalead.de/api/colors?company=${company}`)
+        .then(res => res.json())
+        .then(data => {
+        const root = document.documentElement.style;
+        root.setProperty('--primary-color', data.primaryColor);
+        root.setProperty('--primary-color-dark', data.primaryColorDark);
+        root.setProperty('--primary-color-light', data.primaryColorLight);
+        root.setProperty('--border-radius', data.borderRadius);
+        root.setProperty('--input-border-radius', data.inputBorderRadius);
+        root.setProperty('--font-family', data.fontFamily);
+        });
+    </script>
+
     <style id="theme-style">
         /* dein bestehender CSS-Code */
         body {
