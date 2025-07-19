@@ -11,6 +11,19 @@
     <script>
         // Parameter aus der URL lesen
         const params = new URLSearchParams(window.location.search);
+
+        const settings = {
+        farbe: params.get("farbe") || "#2563eb",
+        farbe_dunkel: params.get("farbe_dunkel") || "#1e40af",
+        farbe_hell: params.get("farbe_hell") || "#eff6ff",
+        border_radius: params.get("border_radius") || "1rem",
+        input_border_radius: params.get("input_border_radius") || "0.75rem",
+        schriftart: params.get("schriftart") || "'Inter', sans-serif",
+        company: params.get("company") || "Firma"
+        }
+
+
+        const params = new URLSearchParams(window.location.search);
         const farbe = params.get('farbe') || '#2563eb';
         const farbe_dunkel = params.get('farbe_dunkel') || '#1e40af';
         const farbe_hell = params.get('farbe_hell') || '#eff6ff';
@@ -29,11 +42,11 @@
     <style id="theme-style">
         /* dein bestehender CSS-Code */
         body {
-            font-family: Inter, sans-serif;
+            font-family: var(--font-family);
+            background-color: var(--primary-color-light);
+            color: #1f2937;
             margin: 0;
-            padding: 0;
-            background-color: var(--primary-color-light, #f8fafc);
-            color: black;
+            padding: 2rem;
         }
 
         .header {
@@ -46,14 +59,31 @@
         }
 
         :root {
-            --primary-color: #3b82f6; /* Default Blue */
-            --primary-color-dark: #2563eb; /* Darker Blue */
-            --primary-color-light: #eff6ff; /* Light Blue */
-            --border-radius: 0.5rem; /* Default rounded */
-            --input-border-radius: 0.5rem; /* Default rounded */
-            --font-family: 'Inter', sans-serif;
+            --primary-color: ${settings.farbe};
+            --primary-color-dark: ${settings.farbe_dunkel};
+            --primary-color-light: ${settings.farbe_hell};
+            --border-radius: ${settings.border_radius};
+            --input-border-radius: ${settings.input_border_radius};
+            --font-family: ${settings.schriftart};
+        }
+        .btn {
+            background: var(--primary-color);
+            border-radius: var(--border-radius);
+            color: white;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border: none;
+            cursor: pointer;
         }
 
+        input, select {
+            border-radius: var(--input-border-radius);
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            width: 100%;
+            font-size: 1rem;
+            font-family: var(--font-family);
+        }
         .property-img {
             width: 80px;
             height: 80px;
