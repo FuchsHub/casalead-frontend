@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/utils/supabase/client'
 
 export default function LeadsPage() {
+
     type Lead = {
     id: string
     created_at: string
@@ -17,8 +18,9 @@ export default function LeadsPage() {
     status: 'offen' | 'in Bearbeitung' | 'erledigt'
     }
 
-const [leads, setLeads] = useState<Lead[]>([])
-const [selected, setSelected] = useState<Lead | null>(null)
+    const [leads, setLeads] = useState<Lead[]>([])
+    const [selected, setSelected] = useState<Lead | null>(null)
+
 
   useEffect(() => {
     supabase.from('leads').select('*').order('created_at', { ascending: false })
