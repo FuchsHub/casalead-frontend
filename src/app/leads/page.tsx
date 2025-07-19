@@ -1,6 +1,3 @@
-// Hinweis: Dieser Platzhalter wird nun durch die vollständige HTML-Datei ersetzt (Design vom Designer),
-// technisch angepasst für Next.js + Supabase Leadanzeige.
-
 'use client'
 
 import { useEffect, useState } from 'react'
