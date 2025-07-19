@@ -4,8 +4,16 @@ class CasaLeadWidget extends HTMLElement {
     this.attachShadow({ mode: 'open' });
   }
 
-  async connectedCallback() {
+  connectedCallback() {
     const company = this.getAttribute('company') || 'default';
+    const farbe = this.getAttribute('farbe') || '#2563eb';
+    const farbe_dunkel = this.getAttribute('farbe_dunkel') || '#1e40af';
+    const farbe_hell = this.getAttribute('farbe_hell') || '#eff6ff';
+    const border_radius = this.getAttribute('border_radius') || '1rem';
+    const input_border_radius = this.getAttribute('input_border_radius') || '0.75rem';
+    const schriftart = this.getAttribute('schriftart') || "'Inter', sans-serif";
+
+    const url = `https://casalead.de/widgets/valuation.html?company=${encodeURIComponent(company)}&farbe=${encodeURIComponent(farbe)}&farbe_dunkel=${encodeURIComponent(farbe_dunkel)}&farbe_hell=${encodeURIComponent(farbe_hell)}&border_radius=${encodeURIComponent(border_radius)}&input_border_radius=${encodeURIComponent(input_border_radius)}&schriftart=${encodeURIComponent(schriftart)}`;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -19,21 +27,8 @@ class CasaLeadWidget extends HTMLElement {
           border: none;
         }
       </style>
-      <iframe id="widgetFrame" src="https://casalead.de/widgets/valuation.html?company=${company}" loading="lazy"></iframe>
+      <iframe src="${url}" loading="lazy"></iframe>
     `;
-
-    try {
-      const res = await fetch(`https://casalead.de/api/colors?company=${company}`);
-      const data = await res.json();
-
-      // Nach dem Laden dem iframe die Farbe mitteilen (z. B. über postMessage)
-      const iframe = this.shadowRoot.getElementById('widgetFrame');
-      iframe.addEventListener('load', () => {
-        iframe.contentWindow.postMessage({ type: 'setColors', data }, '*');
-      });
-    } catch (error) {
-      console.error('Fehler beim Laden der Farben:', error);
-    }
   }
 }
 

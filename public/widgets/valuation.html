@@ -9,20 +9,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const company = urlParams.get("company") || "default";
+        // Parameter aus der URL lesen
+        const params = new URLSearchParams(window.location.search);
+        const farbe = params.get('farbe') || '#2563eb';
+        const farbe_dunkel = params.get('farbe_dunkel') || '#1e40af';
+        const farbe_hell = params.get('farbe_hell') || '#eff6ff';
+        const border_radius = params.get('border_radius') || '1rem';
+        const input_border_radius = params.get('input_border_radius') || '0.75rem';
+        const schriftart = params.get('schriftart') || "'Inter', sans-serif";
 
-    fetch(`https://casalead.de/api/colors?company=${company}`)
-        .then(res => res.json())
-        .then(data => {
-        const root = document.documentElement.style;
-        root.setProperty('--primary-color', data.primaryColor);
-        root.setProperty('--primary-color-dark', data.primaryColorDark);
-        root.setProperty('--primary-color-light', data.primaryColorLight);
-        root.setProperty('--border-radius', data.borderRadius);
-        root.setProperty('--input-border-radius', data.inputBorderRadius);
-        root.setProperty('--font-family', data.fontFamily);
-        });
+        document.documentElement.style.setProperty('--primary-color', farbe);
+        document.documentElement.style.setProperty('--primary-color-dark', farbe_dunkel);
+        document.documentElement.style.setProperty('--primary-color-light', farbe_hell);
+        document.documentElement.style.setProperty('--border-radius', border_radius);
+        document.documentElement.style.setProperty('--input-border-radius', input_border_radius);
+        document.documentElement.style.setProperty('--font-family', schriftart);
     </script>
 
     <style id="theme-style">
@@ -31,7 +32,7 @@
             font-family: Inter, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: white;
+            background-color: var(--primary-color-light, #f8fafc);
             color: black;
         }
 
