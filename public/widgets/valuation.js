@@ -7,10 +7,12 @@ class CasaLeadWidget extends HTMLElement {
   connectedCallback() {
     // 1) Listener für Formular‑Submit‑Nachricht aus dem Iframe
     window.addEventListener('message', async (ev) => {
-      if (ev.data?.type === 'lead-submitted') {
+      console.log('[valuation.js] message empfangen', ev.origin, ev.data);
+      if (ev.origin === 'https://casalead.de' && ev.data?.type === 'lead-submitted') {
         const lead = ev.data.payload
+        console.log('[valuation.js] sende E‑Mail für Lead:', lead.email);
         try {
-          await fetch('/api/send-mail', {
+          await fetch('https://casalead.de/api/send-mail', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -23,9 +25,10 @@ class CasaLeadWidget extends HTMLElement {
               `
             })
           })
+          console.log('[valuation.js] Antwort /api/send-mail:', mailRes.status, await mailRes.clone().text());
           console.log('E‑Mail verschickt!')
         } catch (err) {
-          console.error('E‑Mail‑Fehler:', err)
+          console.error('[valuation.js] E‑Mail‑Fehler:', err);
         }
       }
     })

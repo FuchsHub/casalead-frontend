@@ -1178,6 +1178,7 @@
         }
 
             async function submitForm() {
+                console.log('[valuation.html] submitForm gestartet')
                 if (!validateCurrentPage()) return;
                 collectFormData();
 
@@ -1191,7 +1192,7 @@
                 status:     'new',
                 json_daten: formData
                 };
-
+                console.log('[valuation.html] Payload:', payload);
                 try {
                 // 1) Lead speichern
                 const res = await fetch('/api/submit-lead', {
@@ -1200,12 +1201,13 @@
                     body:    JSON.stringify(payload)
                 });
                 const result = await res.json();
+                console.log('[valuation.html] Antwort /api/submit-lead:', res.status, await res.clone().json());
 
                 if (!res.ok) {
                     alert('Fehler: ' + (result.error || res.statusText));
                     return;
                 }
-
+                console.log('[valuation.html] sende postMessage an Parent')
                 // 2) Parent per postMessage benachrichtigen
                 window.parent.postMessage(
                     { type: 'lead-submitted', payload },
@@ -1220,6 +1222,7 @@
                     </div>
                 `;
                 } catch (err) {
+                console.error('[valuation.html] Netzwerkfehler in submitForm:', err);
                 alert('Netzwerkfehler beim Absenden. Bitte prüfen Sie Ihre Verbindung.');
                 console.error(err);
                 }
@@ -1288,37 +1291,13 @@
     </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('valuation-form')
-            if (!form) return
-            form.addEventListener('submit', submitForm)
-        })
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('valuation-form')
+        if (!form) return
+        form.addEventListener('submit', submitForm)
+    })
+    </script>
 
-        // 1) Lead abspeichern
-        const payload = {
-            name:      form.elements['name'].value,
-            email:     form.elements['email'].value,
-            art:       form.elements['art'].value,
-            unterart:  form.elements['unterart'].value,
-            created_at: new Date().toISOString(),
-            // … alle weiteren Felder aus dem Formular …
-        }
-        await fetch('/api/submit-lead', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-
-        // 2) Nachricht an das Parent‑Window schicken
-        window.parent.postMessage(
-            { type: 'lead-submitted', payload },
-            '*'  // Du kannst hier auch deine Domain spezifizieren
-        )
-
-        // Optional: dem Benutzer ein Danke‑Popup zeigen
-        alert('Vielen Dank! Wir haben Ihre Anfrage erhalten.')
-        })
-  </script>
     <script>
     window.addEventListener('message', (event) => {
         if (event.data?.type === 'setColors') {
