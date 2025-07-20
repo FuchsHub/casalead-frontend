@@ -1,31 +1,28 @@
-// pages/api/submit-lead.ts
-import { NextApiRequest, NextApiResponse } from 'next'
+// src/app/api/submit-lead/route.ts
+import { NextResponse } from 'next/server'
 import { supabase } from '@/utils/supabase/client'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST requests allowed' })
-  }
-
-  const {
-    company_id,
-    art,
-    unterart,
-    name,
-    email,
-    telefon,
-    status = 'new',
-    json_daten
-  } = req.body
-
-  // Pflichtfelder prüfen
-  if (!company_id || !name || !email) {
-    return res
-      .status(400)
-      .json({ error: 'company_id, name und email sind erforderlich.' })
-  }
-
+export async function POST(request: Request) {
   try {
+    const {
+      company_id,
+      art,
+      unterart,
+      name,
+      email,
+      telefon,
+      status = 'new',
+      json_daten
+    } = await request.json()
+
+    // Pflichtfelder prüfen
+    if (!company_id || !name || !email) {
+      return NextResponse.json(
+        { error: 'company_id, name und email sind erforderlich.' },
+        { status: 400 }
+      )
+    }
+
     const { error } = await supabase
       .from('leads')
       .insert([
@@ -43,14 +40,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (error) {
       console.error('Insert error:', error)
-      return res
-        .status(500)
-        .json({ error: 'Fehler beim Speichern des Leads' })
+      return NextResponse.json(
+        { error: 'Fehler beim Speichern des Leads' },
+        { status: 500 }
+      )
     }
 
-    return res.status(200).json({ message: 'Lead erfolgreich gespeichert' })
+    return NextResponse.json(
+      { message: 'Lead erfolgreich gespeichert' },
+      { status: 200 }
+    )
   } catch (err) {
     console.error('Server error:', err)
-    return res.status(500).json({ error: 'Serverfehler' })
+    return NextResponse.json(
+      { error: 'Serverfehler' },
+      { status: 500 }
+    )
   }
 }
