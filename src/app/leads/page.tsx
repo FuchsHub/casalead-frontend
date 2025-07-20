@@ -277,24 +277,25 @@ export default function LeadsPage() {
                 <p className="text-gray-700"><strong>Status:</strong> {statusLabels[selected.status]}</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded">
-                {selected.json_daten && (
-                  <>
-                    {/* Beispiel: nur Anschrift und Ort */}
-                    {typeof selected.json_daten.anschrift === 'string' && (
-                      <p className="text-gray-700">
-                        <strong>Anschrift:</strong> {selected.json_daten.anschrift}
-                      </p>
-                    )}
-                    {typeof selected.json_daten.ort === 'string' && (
-                      <p className="text-gray-700">
-                        <strong>Ort:</strong> {selected.json_daten.ort}
-                      </p>
-                    )}
-                    {/* weitere gewünschte Felder analog */}
-                  </>
-                )}
+                {selected.json_daten &&
+                  Object.entries(selected.json_daten).map(([key, value]) => {
+                    // Wert als String anzeigen
+                    const display = typeof value === 'string'
+                      ? value
+                      : JSON.stringify(value)
 
+                    // Label freundlicher machen (erstes Zeichen groß)
+                    const label = key.charAt(0).toUpperCase() + key.slice(1)
+
+                    return (
+                      <p key={key} className="text-gray-700">
+                        <strong>{label}:</strong> {display}
+                      </p>
+                    )
+                  })
+                }
               </div>
+
               <div className="mt-6 flex justify-between items-center">
                 <div className="text-sm text-gray-500">Verlaufsfeed (zukünftig)</div>
                 <div className="flex gap-2">
