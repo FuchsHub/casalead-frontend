@@ -4,6 +4,17 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/utils/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
 
+// 1) Erstelle ein eigenes Interface für die erwarteten Felder
+interface JsonDaten {
+  Rooms?: number
+  LivingSpace?: number
+  Quality?: number
+  ConstructionYear?: number
+  Features?: string[]
+  // Falls später weitere Felder dazukommen:
+  [key: string]: unknown
+}
+
 interface Lead {
   id: string
   created_at: string
@@ -14,8 +25,8 @@ interface Lead {
   unterart: string
   status: string
   company?: string
-  // `any` durch `unknown` ersetzen, um die Regel einzuhalten
-  json_daten?: Record<string, unknown>
+  // 2) Nutze das spezifische Interface
+  json_daten?: JsonDaten
 }
 
 
@@ -276,25 +287,125 @@ export default function LeadsPage() {
                 <p className="text-gray-700"><strong>Unterart:</strong> {selected.unterart}</p>
                 <p className="text-gray-700"><strong>Status:</strong> {statusLabels[selected.status]}</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded">
-                {selected.json_daten &&
-                  Object.entries(selected.json_daten).map(([key, value]) => {
-                    // Wert als String anzeigen
-                    const display = typeof value === 'string'
-                      ? value
-                      : JSON.stringify(value)
+              {/* … oberhalb … */}
+              <form className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* — Owner ganz oben */}
+                <div className="col-span-full flex items-center space-x-3">
+                  <i className="fas fa-user text-2xl text-gray-600" />
+                  <h2 className="text-2xl font-semibold text-gray-800">
+                    {typeof selected.json_daten?.OwnerName === 'string'
+                      ? selected.json_daten.OwnerName
+                      : '–'}
+                  </h2>
+                </div>
 
-                    // Label freundlicher machen (erstes Zeichen groß)
-                    const label = key.charAt(0).toUpperCase() + key.slice(1)
+                {/* — E‑Mail */}
+                <div className="flex items-center space-x-2">
+                  <i className="fas fa-envelope text-gray-600" />
+                  <span className="font-medium text-gray-700">E‑Mail:</span>
+                  <span className="text-gray-900">{selected.email}</span>
+                </div>
 
-                    return (
-                      <p key={key} className="text-gray-700">
-                        <strong>{label}:</strong> {display}
-                      </p>
-                    )
-                  })
-                }
+                {/* — Telefon (nur wenn vorhanden) */}
+                {selected.telefon && (
+                  <div className="flex items-center space-x-2">
+                    <i className="fas fa-phone text-gray-600" />
+                    <span className="font-medium text-gray-700">Telefon:</span>
+                    <span className="text-gray-900">{selected.telefon}</span>
+                  </div>
+                )}
+
+                {/* — Objekt‑Typ & Unterart */}
+                <div className="flex items-center space-x-2">
+                  <i className="fas fa-home text-gray-600" />
+                  <span className="font-medium text-gray-700">Art:</span>
+                  <span className="text-gray-900">{selected.art}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <i className="fas fa-tags text-gray-600" />
+                  <span className="font-medium text-gray-700">Unterart:</span>
+                  <span className="text-gray-900">{selected.unterart}</span>
+                </div>
+
+                {/* — Zimmer, Wohnfläche, Qualität etc. */}
+                <div className="flex items-center space-x-2">
+                  <i className="fas fa-th-large text-gray-600" />
+                  <span className="font-medium text-gray-700">Zimmer:</span>
+                    <span className="text-gray-900">
+                      {typeof selected.json_daten?.Rooms === 'number'
+                        ? selected.json_daten.Rooms
+                        : '–'}
+                    </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <i className="fas fa-vector-square text-gray-600" />
+                  <span className="font-medium text-gray-700">Wohnfläche:</span>
+                  <span className="text-gray-900">
+                    {selected.json_daten?.LivingSpace
+                      ? `${selected.json_daten.LivingSpace} m²`
+                      : '–'}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <i className="fas fa-star text-gray-600" />
+                  <span className="font-medium text-gray-700">Qualität:</span>
+                  <span className="text-gray-900">
+                    {selected.json_daten?.Quality ?? '–'}
+                  </span>
+                </div>
+
+                {/* — Baujahr */}
+                <div className="flex items-center space-x-2">
+                  <i className="fas fa-calendar-alt text-gray-600" />
+                  <span className="font-medium text-gray-700">Baujahr:</span>
+                  <span className="text-gray-900">
+                    {selected.json_daten?.ConstructionYear ?? '–'}
+                  </span>
+                </div>
+
+                {/* — Grundeigentümer‑Name (falls gewünscht doppelt, sonst entfernen) */}
+                {/* schon oben gerendert – hier weglassen oder anders platzieren */}
+
+                {/* — Features als Checkboxen */}
+                <div className="col-span-full">
+                  <span className="font-medium text-gray-700">Ausstattung:</span>
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    {Array.isArray(selected.json_daten?.Features) &&
+                      selected.json_daten.Features.map((feat: string) => (
+                        <label
+                          key={feat}
+                          className="flex items-center space-x-2 text-gray-900"
+                        >
+                          <input
+                            type="checkbox"
+                            checked
+                            disabled
+                            className="h-4 w-4 text-blue-600"
+                          />
+                          <span>{feat.charAt(0).toUpperCase() + feat.slice(1)}</span>
+                        </label>
+                      ))}
+                  </div>
+                </div>
+              </form>
+
+              {/* Buttons bleiben unverändert */}
+              <div className="p-4 border-t flex justify-end space-x-3">
+                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                  Sync to CRM
+                </button>
+                <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300">
+                  Exportieren
+                </button>
+                <button
+                  onClick={() => deleteLead(selected.id)}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                >
+                  Löschen
+                </button>
               </div>
+
+
 
               <div className="mt-6 flex justify-between items-center">
                 <div className="text-sm text-gray-500">Verlaufsfeed (zukünftig)</div>
