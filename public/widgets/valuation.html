@@ -1201,8 +1201,7 @@
                     body:    JSON.stringify(payload)
                 });
                 const result = await res.json();
-                console.log('[valuation.html] Antwort /api/submit-lead:', res.status, await res.clone().json());
-
+                console.log('[valuation.html] Antwort /api/submit-lead:', res.status, result);
                 if (!res.ok) {
                     alert('Fehler: ' + (result.error || res.statusText));
                     return;
