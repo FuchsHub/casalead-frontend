@@ -1177,58 +1177,62 @@
             hideValidationError(inputElement.id + '-counter-wrapper');
         }
 
-            async function submitForm() {
-                console.log('[valuation.html] submitForm gestartet')
-                if (!validateCurrentPage()) return;
-                collectFormData();
+        async function submitForm(e) {
+        e.preventDefault();  
+        console.log('[valuation.html] submitForm gestartet');
 
-                const payload = {
-                company_id: settings.companyId,
-                art:        formData.propertyType,
-                unterart:   formData.propertySubtype,
-                name:       formData.ownerName,
-                email:      formData.email,
-                telefon:    formData.phone,
-                status:     'new',
-                json_daten: formData
-                };
-                console.log('[valuation.html] Payload:', payload);
-                try {
-                // 1) Lead speichern
-                const res = await fetch('/api/submit-lead', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify(payload)
-                });
-                const result = await res.json();
-                console.log('[valuation.html] Antwort /api/submit-lead:', res.status, result);
-                if (!res.ok) {
-                    alert('Fehler: ' + (result.error || res.statusText));
-                    return;
-                }
-                console.log('[valuation.html] sende postMessage an Parent')
-                // 2) Parent per postMessage benachrichtigen
-                window.parent.postMessage(
-                    { type: 'lead-submitted', payload },
-                    'https://casalead.de'
-                );
+        if (!validateCurrentPage()) return;
+        collectFormData();
 
-                // 3) Danke‑Message anzeigen
-                document.body.innerHTML = `
-                    <div class="p-6 text-center">
-                    <h2 class="text-2xl font-semibold mb-4">Vielen Dank!</h2>
-                    <p>Ihre Bewertungsanfrage wurde erfolgreich übermittelt.</p>
-                    </div>
-                `;
-                } catch (err) {
-                console.error('[valuation.html] Netzwerkfehler in submitForm:', err);
-                alert('Netzwerkfehler beim Absenden. Bitte prüfen Sie Ihre Verbindung.');
-                console.error(err);
-                }
+        const payload = {
+            company_id: settings.companyId,
+            art:        formData.propertyType,
+            unterart:   formData.propertySubtype,
+            name:       formData.ownerName,
+            email:      formData.email,
+            telefon:    formData.phone,
+            status:     'new',
+            json_daten: formData
+        };
+        console.log('[valuation.html] Payload:', payload);
+
+        try {
+            // 1) Lead speichern
+            const res = await fetch('/api/submit-lead', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload)
+            });
+            const result = await res.json();
+            console.log('[valuation.html] Antwort /api/submit-lead:', res.status, result);
+
+            if (!res.ok) {
+            alert('Fehler: ' + (result.error || res.statusText));
+            return;
             }
 
-            // Formular‑Submit auf deine Funktion umleiten
-            document.getElementById('valuation-form').addEventListener('submit', submitForm);
+            // 2) Parent per postMessage benachrichtigen
+            console.log('[valuation.html] sende postMessage an Parent');
+            window.parent.postMessage(
+            { type: 'lead-submitted', payload },
+            '*' // im Produktivbetrieb hier die erlaubte Domain statt '*'
+            );
+
+            // 3) Danke‑Message anzeigen
+            document.body.innerHTML = `
+            <div class="p-6 text-center">
+                <h2 class="text-2xl font-semibold mb-4">Vielen Dank!</h2>
+                <p>Ihre Bewertungsanfrage wurde erfolgreich übermittelt.</p>
+            </div>
+            `;
+        } catch (err) {
+            console.error('[valuation.html] Netzwerkfehler in submitForm:', err);
+            alert('Netzwerkfehler beim Absenden. Bitte prüfen Sie Ihre Verbindung.');
+        }
+        }
+
+        // Event‑Binding (stelle sicher, dass das ganz unten nur einmal steht!)
+        document.getElementById('valuation-form').addEventListener('submit', submitForm);
 
         // Collect all form data
         function collectFormData() {

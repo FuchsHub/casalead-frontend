@@ -7,13 +7,12 @@ class CasaLeadWidget extends HTMLElement {
   connectedCallback() {
     // 1) Listener für Formular‑Submit‑Nachricht aus dem Iframe
     window.addEventListener('message', async (ev) => {
-      console.log('[valuation.js] message empfangen', ev.origin, ev.data)
-      console.log('[valuation.js] ev.data.type ist', ev.data?.type)
+      console.log('[valuation.js] message empfangen', ev.origin, ev.data);
+      console.log('[valuation.js] ev.data.type ist', ev.data?.type);
 
-      // Nur nach dem richtigen Typ filtern, ohne Origin‑Check (zum Test)
       if (ev.data?.type === 'lead-submitted') {
-        console.log('[valuation.js] Typ stimmt, versende Mail…')
-        const lead = ev.data.payload
+        console.log('[valuation.js] Typ stimmt, versende Mail…', ev.data.payload);
+        const lead = ev.data.payload;
         try {
           const mailRes = await fetch('https://casalead.de/api/send-mail', {
             method: 'POST',
@@ -23,20 +22,21 @@ class CasaLeadWidget extends HTMLElement {
               subject: `Danke für deine Anfrage, ${lead.name}!`,
               html:    `
                 <p>Hallo ${lead.name},</p>
-                <p>vielen Dank für deine Anfrage (${lead.art} / ${lead.unterart}).</p>
+                <p>vielen Dank für Ihre Anfrage (${lead.art} / ${lead.unterart}).</p>
                 <p>Wir melden uns in Kürze.</p>
               `
             })
-          })
-          const text = await mailRes.text()
-          console.log('[valuation.js] send-mail Status:', mailRes.status, text)
+          });
+          const text = await mailRes.text();
+          console.log('[valuation.js] send-mail Status:', mailRes.status, text);
         } catch (err) {
-          console.error('[valuation.js] E‑Mail‑Fehler:', err)
+          console.error('[valuation.js] E‑Mail‑Fehler:', err);
         }
       } else {
-        console.warn('[valuation.js] Ignoriere Nachricht ohne passenden type')
+        console.warn('[valuation.js] Ignoriere Nachricht ohne passenden type');
       }
-    })
+    });
+
 
     // 2) Iframe erzeugen und einbinden
     const iframe = document.createElement('iframe')
