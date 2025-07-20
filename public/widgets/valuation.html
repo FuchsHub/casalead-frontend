@@ -13,13 +13,14 @@
         const params = new URLSearchParams(window.location.search);
 
         const settings = {
-            farbe: params.get("farbe") || "#2563eb",
-            farbe_dunkel: params.get("farbe_dunkel") || "#1e40af",
-            farbe_hell: params.get("farbe_hell") || "#eff6ff",
+            farbe:         params.get("farbe")         || "#2563eb",
+            farbe_dunkel:  params.get("farbe_dunkel")  || "#1e40af",
+            farbe_hell:    params.get("farbe_hell")    || "#eff6ff",
             border_radius: params.get("border_radius") || "1rem",
             input_border_radius: params.get("input_border_radius") || "0.75rem",
-            schriftart: params.get("schriftart") || "'Inter', sans-serif",
-            company: params.get("company") || "Firma"
+            schriftart:    params.get("schriftart")    || "'Inter', sans-serif",
+            companyName:   params.get("company")       || "Ihre Firma",
+            companyId:     params.get("company_id")    || null
         };
 
         // Setzen der CSS-Variablen direkt im HTML-Dokument
@@ -1185,23 +1186,47 @@
 
 
         // Submit the form
-        function submitForm() {
-            if (validateCurrentPage()) {
-                collectFormData();
-                console.log('Form data submitted:', formData);
-                
-                alert('Vielen Dank! Ihre Bewertungsanfrage wurde erfolgreich übermittelt. Wir werden uns bald bei Ihnen melden.');
-                
-                form.reset();
-                for (const key in formData) {
-                    if (formData.hasOwnProperty(key)) {
-                        delete formData[key];
-                    }
-                }
-                currentPage = 1;
-                initForm();
+        async function submitForm() {
+            if (!validateCurrentPage()) return;
+            collectFormData();
+
+            const payload = {
+            company_id: settings.companyId,
+            art:        formData.propertyType,
+            unterart:   formData.propertySubtype,
+            name:       formData.ownerName,
+            email:      formData.email,
+            telefon:    formData.phone,
+            status:     'new',
+            json_daten: formData
+            };
+
+            try {
+            const res = await fetch('/api/submit-lead', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify(payload)
+            });
+            const result = await res.json();
+
+            if (!res.ok) {
+                alert('Fehler: ' + (result.error || res.statusText));
+                return;
+            }
+
+            // Erfolg: Formular ausblenden, Danke‑Message anzeigen
+            document.body.innerHTML = `
+                <div class="p-6 text-center">
+                <h2 class="text-2xl font-semibold mb-4">Vielen Dank!</h2>
+                <p>Ihre Bewertungsanfrage wurde erfolgreich übermittelt.</p>
+                </div>`;
+            } catch (err) {
+            alert('Netzwerkfehler beim Absenden. Bitte prüfen Sie Ihre Verbindung.');
+            console.error(err);
             }
         }
+
+
 
         // Collect all form data
         function collectFormData() {
@@ -1268,20 +1293,9 @@
       const styleTag = document.getElementById('theme-style');
 
       if (styleTag) {
-        // Update CSS variables directly on the root element
         document.documentElement.style.setProperty('--primary-color', primaryColor);
-        // Recalculate dark and light variants if needed, or expect them from the message
-        // For simplicity, assuming primaryColorDark and primaryColorLight are also passed or derived
-        // If not passed, you'd need a function to derive them from primaryColor here.
-        // For now, let's assume they are passed or the existing derivation logic is sufficient.
-        
-        // Update body background and text color using the new variables
-        // The CSS already uses var(--primary-color-light) and a fixed text color.
-        // If backgroundColor and textColor from the message should override, apply them directly.
         document.body.style.backgroundColor = backgroundColor || 'var(--primary-color-light)';
         document.body.style.color = textColor || '#1f2937';
-
-        // The .header color is already set to var(--primary-color) in the CSS, so it will update automatically.
       }
     }
   });

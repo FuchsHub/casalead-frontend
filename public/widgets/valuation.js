@@ -13,7 +13,7 @@ class CasaLeadWidget extends HTMLElement {
 
     // Parameterliste, die übergeben werden soll
     const attributes = [
-      "company",
+      "company_id",  // <– neu
       "farbe",
       "farbe_dunkel",
       "farbe_hell",
@@ -22,10 +22,8 @@ class CasaLeadWidget extends HTMLElement {
       "schriftart"
     ]
 
-    // Base URL der Bewertungsvorschau
     const url = new URL('https://casalead.de/widgets/valuation.html')
 
-    // Alle gefundenen Attribute an die URL anhängen
     attributes.forEach(attr => {
       const value = this.getAttribute(attr)
       if (value) {
@@ -34,6 +32,7 @@ class CasaLeadWidget extends HTMLElement {
     })
 
     iframe.src = url.toString()
+
 
     // Iframe in die Shadow-DOM einfügen
     this.shadowRoot.appendChild(iframe)
