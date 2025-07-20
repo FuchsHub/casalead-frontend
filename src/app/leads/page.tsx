@@ -212,7 +212,11 @@ export default function LeadsPage() {
                       <p className="text-sm text-gray-600"><i className="fas fa-envelope mr-1" /> {lead.email}</p>
                       {lead.telefon && <p className="text-sm text-gray-600"><i className="fas fa-phone mr-1" /> {lead.telefon}</p>}
                       <p className="text-sm text-gray-600"><i className="fas fa-home mr-1" /> {lead.unterart}</p>
-                      {lead.json_daten?.anschrift && <p className="text-sm text-gray-500">{lead.json_daten.anschrift}</p>}
+                      {typeof lead.json_daten?.anschrift === 'string' && (
+                        <p className="text-sm text-gray-500">
+                          {lead.json_daten.anschrift}
+                        </p>
+                      )}
                     </div>
                   ))}
                 {grouped[status] && grouped[status].length > 3 && (
