@@ -14,8 +14,10 @@ interface Lead {
   unterart: string
   status: string
   company?: string
-  json_daten?: Record<string, any>
+  // `any` durch `unknown` ersetzen, um die Regel einzuhalten
+  json_daten?: Record<string, unknown>
 }
+
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
