@@ -29,12 +29,35 @@ export default function LeadsPage() {
   const [company, setCompany] = useState<string>('')
 
   useEffect(() => {
-    fetchCompany()
+    ;(async () => {
+      // 1) Aktuellen User abrufen
+      const { data: authData, error: authError } = await supabase.auth.getUser()
+      if (authError || !authData.data.user) {
+        console.error('Auth-Fehler:', authError)
+        return
+      }
+
+      // 2) Nutzer‑Datensatz lesen und firma_id holen
+      const userEmail = authData.data.user.email!
+      const { data: nutzer, error: nutzerError } = await supabase
+        .from('nutzer')
+        .select('firma_id')
+        .eq('email', userEmail)
+        .single()
+
+      if (nutzerError || !nutzer) {
+        console.error('Fehler beim Laden des Nutzers:', nutzerError)
+        return
+      }
+
+      setCompany(nutzer.firma_id)
+    })()
   }, [])
 
   useEffect(() => {
     if (company) fetchLeads()
   }, [company])
+
 
   const fetchCompany = async () => {
     const user = await supabase.auth.getUser()
