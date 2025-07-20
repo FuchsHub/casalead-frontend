@@ -31,16 +31,15 @@ export default function LeadsPage() {
   useEffect(() => {
     ;(async () => {
       // 1) Aktuellen User abrufen
-      const authResult = await supabase.auth.getUser()
+      const { data, error } = await supabase.auth.getUser()
 
-      // 1) Prüfen, ob 'user' in authResult existiert und nicht null ist
-      if (!('user' in authResult) || !authResult.user) {
-        console.error('Auth-Fehler: Kein eingeloggter User gefunden.')
+      if (error || !data.user) {
+        console.error('Auth-Fehler: ', error)
         return
       }
 
-      // 2) Jetzt ist TypeScript sicher, dass authResult.user vom Typ User ist
-      const userEmail = authResult.user.email
+      const userEmail = data.user.email
+
 
       const { data: nutzer, error: nutzerError } = await supabase
         .from('nutzer')
