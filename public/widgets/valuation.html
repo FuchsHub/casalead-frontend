@@ -57,13 +57,6 @@
             color: var(--primary-color);
         }
 
-        /* Die allgemeine button Regel kann entfernt werden, da spezifischere Regeln existieren */
-        /* button {
-            background-color: var(--primary-color);
-        } */
-
-        /* Die :root Variablen werden nun direkt über das JavaScript oben gesetzt,
-           daher können die Kommentare hier entfernt werden, um Klarheit zu schaffen. */
         :root {
             /* --primary-color, --primary-color-dark, --primary-color-light,
                --border-radius, --input-border-radius, --font-family, --primary-color-rgb
@@ -1184,49 +1177,56 @@
             hideValidationError(inputElement.id + '-counter-wrapper');
         }
 
+            async function submitForm() {
+                if (!validateCurrentPage()) return;
+                collectFormData();
 
-        // Submit the form
-        async function submitForm() {
-            if (!validateCurrentPage()) return;
-            collectFormData();
+                const payload = {
+                company_id: settings.companyId,
+                art:        formData.propertyType,
+                unterart:   formData.propertySubtype,
+                name:       formData.ownerName,
+                email:      formData.email,
+                telefon:    formData.phone,
+                status:     'new',
+                json_daten: formData
+                };
 
-            const payload = {
-            company_id: settings.companyId,
-            art:        formData.propertyType,
-            unterart:   formData.propertySubtype,
-            name:       formData.ownerName,
-            email:      formData.email,
-            telefon:    formData.phone,
-            status:     'new',
-            json_daten: formData
-            };
+                try {
+                // 1) Lead speichern
+                const res = await fetch('/api/submit-lead', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify(payload)
+                });
+                const result = await res.json();
 
-            try {
-            const res = await fetch('/api/submit-lead', {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify(payload)
-            });
-            const result = await res.json();
+                if (!res.ok) {
+                    alert('Fehler: ' + (result.error || res.statusText));
+                    return;
+                }
 
-            if (!res.ok) {
-                alert('Fehler: ' + (result.error || res.statusText));
-                return;
+                // 2) Parent per postMessage benachrichtigen
+                window.parent.postMessage(
+                    { type: 'lead-submitted', payload },
+                    'https://casalead.de'
+                );
+
+                // 3) Danke‑Message anzeigen
+                document.body.innerHTML = `
+                    <div class="p-6 text-center">
+                    <h2 class="text-2xl font-semibold mb-4">Vielen Dank!</h2>
+                    <p>Ihre Bewertungsanfrage wurde erfolgreich übermittelt.</p>
+                    </div>
+                `;
+                } catch (err) {
+                alert('Netzwerkfehler beim Absenden. Bitte prüfen Sie Ihre Verbindung.');
+                console.error(err);
+                }
             }
 
-            // Erfolg: Formular ausblenden, Danke‑Message anzeigen
-            document.body.innerHTML = `
-                <div class="p-6 text-center">
-                <h2 class="text-2xl font-semibold mb-4">Vielen Dank!</h2>
-                <p>Ihre Bewertungsanfrage wurde erfolgreich übermittelt.</p>
-                </div>`;
-            } catch (err) {
-            alert('Netzwerkfehler beim Absenden. Bitte prüfen Sie Ihre Verbindung.');
-            console.error(err);
-            }
-        }
-
-
+            // Formular‑Submit auf deine Funktion umleiten
+            document.getElementById('valuation-form').addEventListener('submit', submitForm);
 
         // Collect all form data
         function collectFormData() {
@@ -1286,20 +1286,53 @@
 
         document.addEventListener('DOMContentLoaded', initForm);
     </script>
-    <script>
-  window.addEventListener('message', (event) => {
-    if (event.data?.type === 'setColors') {
-      const { primaryColor, backgroundColor, textColor } = event.data.data;
-      const styleTag = document.getElementById('theme-style');
 
-      if (styleTag) {
-        document.documentElement.style.setProperty('--primary-color', primaryColor);
-        document.body.style.backgroundColor = backgroundColor || 'var(--primary-color-light)';
-        document.body.style.color = textColor || '#1f2937';
-      }
-    }
-  });
-</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('valuation-form')
+            if (!form) return
+            form.addEventListener('submit', submitForm)
+        })
+
+        // 1) Lead abspeichern
+        const payload = {
+            name:      form.elements['name'].value,
+            email:     form.elements['email'].value,
+            art:       form.elements['art'].value,
+            unterart:  form.elements['unterart'].value,
+            created_at: new Date().toISOString(),
+            // … alle weiteren Felder aus dem Formular …
+        }
+        await fetch('/api/submit-lead', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+
+        // 2) Nachricht an das Parent‑Window schicken
+        window.parent.postMessage(
+            { type: 'lead-submitted', payload },
+            '*'  // Du kannst hier auch deine Domain spezifizieren
+        )
+
+        // Optional: dem Benutzer ein Danke‑Popup zeigen
+        alert('Vielen Dank! Wir haben Ihre Anfrage erhalten.')
+        })
+  </script>
+    <script>
+    window.addEventListener('message', (event) => {
+        if (event.data?.type === 'setColors') {
+        const { primaryColor, backgroundColor, textColor } = event.data.data;
+        const styleTag = document.getElementById('theme-style');
+
+        if (styleTag) {
+            document.documentElement.style.setProperty('--primary-color', primaryColor);
+            document.body.style.backgroundColor = backgroundColor || 'var(--primary-color-light)';
+            document.body.style.color = textColor || '#1f2937';
+        }
+        }
+    });
+    </script>
 
 </body>
 </html>

@@ -3,16 +3,57 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/utils/supabase/client'
 
-// 1) Erstelle ein eigenes Interface für die erwarteten Felder
+function downloadCsv(filename: string, obj: Record<string, unknown>) {
+  // 1) Header und Werte ermitteln
+  const keys   = Object.keys(obj)
+  const header = keys.join(';')
+  const row    = keys.map(k => {
+    const v = obj[k]
+    // Strings mit Semikolon oder Newline quoten
+    const str = v == null ? '' : String(v)
+    return str.includes(';') || str.includes('\n')
+      ? `"${str.replace(/"/g, '""')}"`
+      : str
+  }).join(';')
+
+  // 2) CSV zusammensetzen
+  const csv = header + '\n' + row
+
+  // 3) Download triggern
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 interface JsonDaten {
-  Rooms?: number
-  LivingSpace?: number
-  Quality?: number
-  ConstructionYear?: number
-  Features?: string[]
-  // Falls später weitere Felder dazukommen:
+  zip?: string
+  city?: string
+  phone?: string
+  rooms?: string
+  street?: string
+  quality?: string
+  features?: string[]
+  ownerZip?: string
+  plotArea?: string
+  condition?: string
+  ownerCity?: string
+  ownerName?: string
+  saleReason?: string
+  livingSpace?: string
+  ownerStreet?: string
+  propertyType?: string
+  contactConsent?: boolean
+  propertySubtype?: string
+  constructionYear?: string
+
+  // falls später noch weitere Keys dazukommen:
   [key: string]: unknown
 }
+
 
 interface Lead {
   id: string
@@ -70,7 +111,38 @@ export default function LeadsPage() {
     if (company) fetchLeads()
   }, [company])
 
+  const handleDrop = async (
+    e: React.DragEvent,
+    dropStatus: string,
+    dropIndex: number
+  ) => {
+    e.preventDefault()
+    const data = JSON.parse(e.dataTransfer.getData('application/json')) as {
+      id: string
+      fromStatus: string
+      fromIndex: number
+    }
+    const { id, fromStatus, fromIndex } = data
 
+    if (fromStatus === dropStatus) {
+      // 1) Reorder lokal
+      const list = grouped[dropStatus]!.slice()
+      const [moved] = list.splice(fromIndex, 1)
+      list.splice(dropIndex, 0, moved)
+
+      // 2) In DB Position speichern (Spalte `position` vorausgesetzt!)
+      await Promise.all(
+        list.map((l, i) =>
+          supabase.from('leads').update({ position: i }).eq('id', l.id)
+        )
+      )
+      // 3) Neu laden
+      fetchLeads()
+    } else {
+      // Wechsel zwischen Spalten
+      updateLeadStatus(id, dropStatus)
+    }
+  }
 
   const fetchLeads = async () => {
     const { data } = await supabase
@@ -84,17 +156,39 @@ export default function LeadsPage() {
   const createLead = async () => {
     const newLead: Omit<Lead, 'id' | 'created_at'> = {
       name: 'Max Mustermann',
-      email: 'max@example.com',
-      telefon: '0123456789',
-      art: 'Wohnung',
-      unterart: 'Etagenwohnung',
+      email: 'max.mustermann@example.com',
+      telefon: '01234 567890',
+      art: 'Haus',
+      unterart: 'Villa',
       status: 'new',
-      company: company,
-      json_daten: {}
+      company,
+      json_daten: {
+        zip: '70176',
+        city: 'Stuttgart',
+        street: 'Johannesstraße 98',
+        phone: '01234 567890',
+        rooms: '4',
+        livingSpace: '120',
+        plotArea: '500',
+        quality: '3',
+        condition: '3',
+        constructionYear: '2000',
+        saleReason: 'Erbschaft',
+        features: ['garten', 'küche', 'kamin'],
+        contactConsent: true,
+        ownerName: 'Max Mustermann',
+        ownerStreet: 'Johannesstraße 98',
+        ownerZip: '70176',
+        ownerCity: 'Stuttgart',
+        propertyType: 'haus',
+        propertySubtype: 'villa'
+      }
     }
+
     const { error } = await supabase.from('leads').insert(newLead)
     if (!error) fetchLeads()
   }
+
 
   const updateLeadStatus = async (id: string, newStatus: string) => {
     await supabase.from('leads').update({ status: newStatus }).eq('id', id)
@@ -143,24 +237,24 @@ export default function LeadsPage() {
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-64 bg-[#1f2937] text-white p-6 flex flex-col justify-between">
+      <aside className="w-64 bg-[#1f2937] p-6 text-white flex flex-col justify-between">
         <div>
           <div className="text-2xl font-extrabold mb-8">CasaLead.de</div>
           <nav className="space-y-2">
-            <a href="#" className="flex items-center px-4 py-2 rounded hover:bg-blue-600 text-white">
-              <i className="fas fa-tachometer-alt mr-2" /> Dashboard
+            <a href="/dashboard" className="block px-4 py-2 rounded hover:bg-blue-600">
+              Dashboard
             </a>
-            <a href="#" className="flex items-center px-4 py-2 rounded bg-blue-600 text-white">
-              <i className="fas fa-users mr-2" /> Leads
+            <a href="/leads" className="block px-4 py-2 rounded bg-blue-600">
+              Leads
             </a>
-            <a href="#" className="flex items-center px-4 py-2 rounded hover:bg-blue-600 text-white">
-              <i className="fas fa-puzzle-piece mr-2" /> Integrationen
+            <a href="/settings" className="block px-4 py-2 rounded hover:bg-blue-600">
+              Einstellungen
             </a>
           </nav>
         </div>
         <div className="text-sm text-gray-400 mt-8">
-          <p>&copy; 2024 CasaLead.de</p>
-          <p>Version 1.0</p>
+          <p>© 2024 CasaLead.de</p>
+          <p>Version 1.0</p>
         </div>
       </aside>
 
@@ -195,10 +289,6 @@ export default function LeadsPage() {
               Alle löschen
             </button>
 
-            <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded text-sm shadow">
-              <i className="fas fa-file-export mr-2" />
-              Exportieren
-            </button>
           </div>
         </header>
 
@@ -261,132 +351,160 @@ export default function LeadsPage() {
             </div>
           ))}
         </div>
-
         {selected && (
-          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg max-w-4xl w-full p-6 shadow-xl relative">
-              <button onClick={() => setSelected(null)} className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 text-2xl">
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+            {/* Klick aufs Overlay schließt das Modal */}
+            <button
+              onClick={() => setSelected(null)}
+              className="absolute inset-0 w-full h-full"
+              aria-label="Schließen"
+            />
+
+            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-3xl overflow-auto">
+              {/* Schließen‑Icon oben rechts */}
+              <button
+                onClick={() => setSelected(null)}
+                className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl"
+                aria-label="Schließen"
+              >
                 &times;
               </button>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                {typeof selected.json_daten?.anrede === 'string' ? selected.json_daten.anrede : ''}{' '}
-                {typeof selected.json_daten?.vorname === 'string' ? selected.json_daten.vorname : ''}{' '}
-                {typeof selected.json_daten?.nachname === 'string' ? selected.json_daten.nachname : ''}
-              </h2>
-              <p className="text-sm text-gray-500 mb-4">Erstellt am: {new Date(selected.created_at).toLocaleString('de-DE')}</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <p className="text-gray-700"><strong>E-Mail:</strong> {selected.email}</p>
-                <p className="text-gray-700"><strong>Telefon:</strong> {selected.telefon || '—'}</p>
-                <p className="text-gray-700"><strong>Art:</strong> {selected.art}</p>
-                <p className="text-gray-700"><strong>Unterart:</strong> {selected.unterart}</p>
-                <p className="text-gray-700"><strong>Status:</strong> {statusLabels[selected.status]}</p>
-              </div>
-              {/* … oberhalb … */}
-     {/* … oberhalb: Header mit Erstellungsdatum … */}
 
+              {/* Header */}
+              <div className="p-6 border-b">
+                <h2 className="text-2xl font-bold text-gray-800">Detailansicht Lead</h2>
+                <p className="text-sm text-gray-700">
+                  Erstellt am: {new Date(selected.created_at).toLocaleString('de-DE')}
+                </p>
+              </div>
+
+              {/* Body */}
               <div className="p-6 space-y-6">
-                {/* — Kundenname (OwnerName) */}
-                <h2 className="text-2xl font-semibold text-gray-800 flex items-center space-x-3">
-                  <i className="fas fa-user text-2xl text-gray-600" />
-                  <span>
-                    {selected.name ?? '–'}
-                  </span>
-                </h2>
-                {/* — Kurzübersicht */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Übersicht */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <strong>E‑Mail:</strong> <span>{selected.email}</span>
-                  </div>
-                  {selected.telefon && (
-                    <div>
-                      <strong>Telefon:</strong> <span>{selected.telefon}</span>
-                    </div>
-                  )}
-                  <div>
-                    <strong>Art:</strong> <span>{selected.art}</span>
+                    <label className="block font-medium text-gray-700">Name</label>
+                    <p className="mt-1 text-gray-900">{selected.name}</p>
                   </div>
                   <div>
-                    <strong>Unterart:</strong> <span>{selected.unterart}</span>
+                    <label className="block font-medium text-gray-700">Anschrift</label>
+                    <p className="mt-1 text-gray-900">
+                      {selected.json_daten?.street ?? '–'}, {selected.json_daten?.zip ?? '–'}{' '}
+                      {selected.json_daten?.city ?? '–'}
+                    </p>
                   </div>
                   <div>
-                    <strong>Status:</strong> <span>{statusLabels[selected.status]}</span>
+                    <label className="block font-medium text-gray-700">Art</label>
+                    <p className="mt-1 text-gray-900 capitalize">{selected.art}</p>
                   </div>
                 </div>
 
-                {/* — Detailübersicht als Definitionsliste */}
-                <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded">
+                {/* Kontakt */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <dt className="font-medium">Zimmer</dt>
-                    <dd>{selected.json_daten?.Rooms ?? '–'}</dd>
+                    <label className="block font-medium text-gray-700">E‑Mail</label>
+                    <p className="mt-1 text-gray-900">{selected.email}</p>
                   </div>
-                  <div>
-                    <dt className="font-medium">Wohnfläche</dt>
-                    <dd>
-                      {selected.json_daten?.LivingSpace
-                        ? `${selected.json_daten.LivingSpace} m²`
-                        : '–'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="font-medium">Qualität</dt>
-                    <dd>{selected.json_daten?.Quality ?? '–'}</dd>
-                  </div>
-                  <div>
-                    <dt className="font-medium">Baujahr</dt>
-                    <dd>{selected.json_daten?.ConstructionYear ?? '–'}</dd>
-                  </div>
+                  {selected.telefon && (
+                    <div>
+                      <label className="block font-medium text-gray-700">Telefon</label>
+                      <p className="mt-1 text-gray-900">{selected.telefon}</p>
+                    </div>
+                  )}
+                </div>
 
-                  {/* Ausstattung */}
+                {/* Infos zur Immobilie */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-medium text-gray-700">Unterart</label>
+                    <p className="mt-1 text-gray-900 capitalize">{selected.unterart}</p>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-gray-700">Wohnfläche</label>
+                    <p className="mt-1 text-gray-900">
+                      {selected.json_daten?.livingSpace
+                        ? `${selected.json_daten.livingSpace} m²`
+                        : '–'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-gray-700">Grundstücksfläche</label>
+                    <p className="mt-1 text-gray-900">
+                      {selected.json_daten?.plotArea
+                        ? `${selected.json_daten.plotArea} m²`
+                        : '–'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-gray-700">Zustand</label>
+                    <p className="mt-1 text-gray-900">{selected.json_daten?.condition ?? '–'}</p>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-gray-700">Baujahr</label>
+                    <p className="mt-1 text-gray-900">{selected.json_daten?.constructionYear ?? '–'}</p>
+                  </div>
+                  <div>
+                    <label className="block font-medium text-gray-700">Qualität</label>
+                    <p className="mt-1 text-gray-900">{selected.json_daten?.quality ?? '–'}</p>
+                  </div>
                   <div className="col-span-full">
-                    <dt className="font-medium">Ausstattung</dt>
-                    <dd className="mt-2 grid grid-cols-2 gap-3">
-                      {Array.isArray(selected.json_daten?.Features) && selected.json_daten.Features.length > 0 ? (
-                        selected.json_daten.Features.map((feat: string) => (
+                    <label className="block font-medium text-gray-700">Verkaufsgrund</label>
+                    <p className="mt-1 text-gray-900 capitalize">{selected.json_daten?.saleReason ?? '–'}</p>
+                  </div>
+                  <div className="col-span-full">
+                    <label className="block font-medium text-gray-700">Kontakt­einverständnis</label>
+                    <p className="mt-1 text-gray-900">
+                      {selected.json_daten?.contactConsent ? 'Ja' : 'Nein'}
+                    </p>
+                  </div>
+                  <div className="col-span-full">
+                    <label className="block font-medium text-gray-700">Ausstattung</label>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {Array.isArray(selected.json_daten?.features) && selected.json_daten.features.length > 0 ? (
+                        selected.json_daten.features.map((feat) => (
                           <span
                             key={feat}
-                            className="inline-flex items-center space-x-2 text-gray-900"
+                            className="px-2 py-1 bg-gray-200 rounded text-sm text-gray-900 capitalize"
                           >
-                            <input
-                              type="checkbox"
-                              checked
-                              disabled
-                              className="h-4 w-4"
-                            />
-                            <span>{feat.charAt(0).toUpperCase() + feat.slice(1)}</span>
+                            {feat}
                           </span>
                         ))
                       ) : (
-                        <span>–</span>
+                        <p className="text-gray-900">–</p>
                       )}
-                    </dd>
+                    </div>
                   </div>
-                </dl>
+                </div>
               </div>
 
-              {/* — Einmaliger Button‑Bereich */}
-              <div className="p-4 border-t flex justify-end space-x-3">
+              {/* Footer Aktionen */}
+              <div className="p-6 border-t flex justify-end gap-3">
                 <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                  onClick={() => deleteLead(selected.id)}
+                  onClick={() => {
+                    const data = {
+                      id: selected.id,
+                      erstellt_am: selected.created_at,
+                      name: selected.name,
+                      email: selected.email,
+                      telefon: selected.telefon ?? '',
+                      art: selected.art,
+                      unterart: selected.unterart,
+                      status: selected.status,
+                      ...selected.json_daten
+                    }
+                    downloadCsv(`${selected.name}_lead.csv`, data)
+                  }}
+                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300"
                 >
-                  Löschbestätigung
-                </button>
-                <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300">
                   Exportieren
                 </button>
-                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <button
+                  onClick={() => {
+                    /* Sync‑Logik */
+                  }}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
                   Sync to CRM
-                </button>
-              </div>
-
-
-              {/* Buttons bleiben unverändert */}
-              <div className="p-4 border-t flex justify-end space-x-3">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                  Sync to CRM
-                </button>
-                <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300">
-                  Exportieren
                 </button>
                 <button
                   onClick={() => deleteLead(selected.id)}
@@ -395,20 +513,13 @@ export default function LeadsPage() {
                   Löschen
                 </button>
               </div>
-
-
-
-              <div className="mt-6 flex justify-between items-center">
-                <div className="text-sm text-gray-500">Verlaufsfeed (zukünftig)</div>
-                <div className="flex gap-2">
-                  <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"><i className="fas fa-sync-alt mr-1" /> Sync to CRM</button>
-                  <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300"><i className="fas fa-file-export mr-1" /> Exportieren</button>
-                  <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" onClick={() => deleteLead(selected.id)}><i className="fas fa-trash-alt mr-1" /> Löschen</button>
-                </div>
-              </div>
             </div>
           </div>
         )}
+
+
+
+       
       </main>
     </div>
   )
