@@ -238,7 +238,11 @@ export default function LeadsPage() {
               <button onClick={() => setSelected(null)} className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 text-2xl">
                 &times;
               </button>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">{selected.json_daten?.anrede} {selected.json_daten?.vorname} {selected.json_daten?.nachname}</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                {typeof selected.json_daten?.anrede === 'string' ? selected.json_daten.anrede : ''}{' '}
+                {typeof selected.json_daten?.vorname === 'string' ? selected.json_daten.vorname : ''}{' '}
+                {typeof selected.json_daten?.nachname === 'string' ? selected.json_daten.nachname : ''}
+              </h2>
               <p className="text-sm text-gray-500 mb-4">Erstellt am: {new Date(selected.created_at).toLocaleString('de-DE')}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <p className="text-gray-700"><strong>E-Mail:</strong> {selected.email}</p>
@@ -248,9 +252,16 @@ export default function LeadsPage() {
                 <p className="text-gray-700"><strong>Status:</strong> {statusLabels[selected.status]}</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded">
-                {selected.json_daten && Object.entries(selected.json_daten).map(([key, value]) => (
-                  <p key={key} className="text-gray-700"><strong>{key}:</strong> {value as string}</p>
-                ))}
+                {selected.json_daten && Object.entries(selected.json_daten).map(([key, value]) => {
+                  const display = typeof value === 'string'
+                    ? value
+                    : JSON.stringify(value);
+                  return (
+                    <p key={key} className="text-gray-700">
+                      <strong>{key}:</strong> {display}
+                    </p>
+                  );
+                })}
               </div>
               <div className="mt-6 flex justify-between items-center">
                 <div className="text-sm text-gray-500">Verlaufsfeed (zukünftig)</div>
