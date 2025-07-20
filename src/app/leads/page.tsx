@@ -31,14 +31,17 @@ export default function LeadsPage() {
   useEffect(() => {
     ;(async () => {
       // 1) Aktuellen User abrufen
-      const { data: authData, error: authError } = await supabase.auth.getUser()
-      if (authError || !authData.data.user) {
-        console.error('Auth-Fehler:', authError)
+      const authResult = await supabase.auth.getUser()
+
+      // 1) Prüfen, ob 'user' in authResult existiert und nicht null ist
+      if (!('user' in authResult) || !authResult.user) {
+        console.error('Auth-Fehler: Kein eingeloggter User gefunden.')
         return
       }
 
-      // 2) Nutzer‑Datensatz lesen und firma_id holen
-      const userEmail = authData.data.user.email!
+      // 2) Jetzt ist TypeScript sicher, dass authResult.user vom Typ User ist
+      const userEmail = authResult.user.email
+
       const { data: nutzer, error: nutzerError } = await supabase
         .from('nutzer')
         .select('firma_id')
@@ -275,16 +278,23 @@ export default function LeadsPage() {
                 <p className="text-gray-700"><strong>Status:</strong> {statusLabels[selected.status]}</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded">
-                {selected.json_daten && Object.entries(selected.json_daten).map(([key, value]) => {
-                  const display = typeof value === 'string'
-                    ? value
-                    : JSON.stringify(value);
-                  return (
-                    <p key={key} className="text-gray-700">
-                      <strong>{key}:</strong> {display}
-                    </p>
-                  );
-                })}
+                {selected.json_daten && (
+                  <>
+                    {/* Beispiel: nur Anschrift und Ort */}
+                    {typeof selected.json_daten.anschrift === 'string' && (
+                      <p className="text-gray-700">
+                        <strong>Anschrift:</strong> {selected.json_daten.anschrift}
+                      </p>
+                    )}
+                    {typeof selected.json_daten.ort === 'string' && (
+                      <p className="text-gray-700">
+                        <strong>Ort:</strong> {selected.json_daten.ort}
+                      </p>
+                    )}
+                    {/* weitere gewünschte Felder analog */}
+                  </>
+                )}
+
               </div>
               <div className="mt-6 flex justify-between items-center">
                 <div className="text-sm text-gray-500">Verlaufsfeed (zukünftig)</div>
