@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/utils/supabase/client'
-import { v4 as uuidv4 } from 'uuid'
 
 // 1) Erstelle ein eigenes Interface für die erwarteten Felder
 interface JsonDaten {
@@ -72,11 +71,6 @@ export default function LeadsPage() {
   }, [company])
 
 
-  const fetchCompany = async () => {
-    const user = await supabase.auth.getUser()
-    const userCompany = user.data.user?.user_metadata?.company || ''
-    setCompany(userCompany)
-  }
 
   const fetchLeads = async () => {
     const { data } = await supabase
@@ -288,106 +282,103 @@ export default function LeadsPage() {
                 <p className="text-gray-700"><strong>Status:</strong> {statusLabels[selected.status]}</p>
               </div>
               {/* … oberhalb … */}
-              <form className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* — Owner ganz oben */}
-                <div className="col-span-full flex items-center space-x-3">
+     {/* … oberhalb: Header mit Erstellungsdatum … */}
+
+              <div className="p-6 space-y-6">
+                {/* — Kundenname (OwnerName) */}
+                <h2 className="text-2xl font-semibold text-gray-800 flex items-center space-x-3">
                   <i className="fas fa-user text-2xl text-gray-600" />
-                  <h2 className="text-2xl font-semibold text-gray-800">
-                    {typeof selected.json_daten?.OwnerName === 'string'
-                      ? selected.json_daten.OwnerName
-                      : '–'}
-                  </h2>
-                </div>
-
-                {/* — E‑Mail */}
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-envelope text-gray-600" />
-                  <span className="font-medium text-gray-700">E‑Mail:</span>
-                  <span className="text-gray-900">{selected.email}</span>
-                </div>
-
-                {/* — Telefon (nur wenn vorhanden) */}
-                {selected.telefon && (
-                  <div className="flex items-center space-x-2">
-                    <i className="fas fa-phone text-gray-600" />
-                    <span className="font-medium text-gray-700">Telefon:</span>
-                    <span className="text-gray-900">{selected.telefon}</span>
+                  <span>
+                    {selected.name ?? '–'}
+                  </span>
+                </h2>
+                {/* — Kurzübersicht */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <strong>E‑Mail:</strong> <span>{selected.email}</span>
                   </div>
-                )}
-
-                {/* — Objekt‑Typ & Unterart */}
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-home text-gray-600" />
-                  <span className="font-medium text-gray-700">Art:</span>
-                  <span className="text-gray-900">{selected.art}</span>
+                  {selected.telefon && (
+                    <div>
+                      <strong>Telefon:</strong> <span>{selected.telefon}</span>
+                    </div>
+                  )}
+                  <div>
+                    <strong>Art:</strong> <span>{selected.art}</span>
+                  </div>
+                  <div>
+                    <strong>Unterart:</strong> <span>{selected.unterart}</span>
+                  </div>
+                  <div>
+                    <strong>Status:</strong> <span>{statusLabels[selected.status]}</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-tags text-gray-600" />
-                  <span className="font-medium text-gray-700">Unterart:</span>
-                  <span className="text-gray-900">{selected.unterart}</span>
-                </div>
 
-                {/* — Zimmer, Wohnfläche, Qualität etc. */}
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-th-large text-gray-600" />
-                  <span className="font-medium text-gray-700">Zimmer:</span>
-                    <span className="text-gray-900">
-                      {typeof selected.json_daten?.Rooms === 'number'
-                        ? selected.json_daten.Rooms
+                {/* — Detailübersicht als Definitionsliste */}
+                <dl className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded">
+                  <div>
+                    <dt className="font-medium">Zimmer</dt>
+                    <dd>{selected.json_daten?.Rooms ?? '–'}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-medium">Wohnfläche</dt>
+                    <dd>
+                      {selected.json_daten?.LivingSpace
+                        ? `${selected.json_daten.LivingSpace} m²`
                         : '–'}
-                    </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-vector-square text-gray-600" />
-                  <span className="font-medium text-gray-700">Wohnfläche:</span>
-                  <span className="text-gray-900">
-                    {selected.json_daten?.LivingSpace
-                      ? `${selected.json_daten.LivingSpace} m²`
-                      : '–'}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-star text-gray-600" />
-                  <span className="font-medium text-gray-700">Qualität:</span>
-                  <span className="text-gray-900">
-                    {selected.json_daten?.Quality ?? '–'}
-                  </span>
-                </div>
-
-                {/* — Baujahr */}
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-calendar-alt text-gray-600" />
-                  <span className="font-medium text-gray-700">Baujahr:</span>
-                  <span className="text-gray-900">
-                    {selected.json_daten?.ConstructionYear ?? '–'}
-                  </span>
-                </div>
-
-                {/* — Grundeigentümer‑Name (falls gewünscht doppelt, sonst entfernen) */}
-                {/* schon oben gerendert – hier weglassen oder anders platzieren */}
-
-                {/* — Features als Checkboxen */}
-                <div className="col-span-full">
-                  <span className="font-medium text-gray-700">Ausstattung:</span>
-                  <div className="mt-2 grid grid-cols-2 gap-3">
-                    {Array.isArray(selected.json_daten?.Features) &&
-                      selected.json_daten.Features.map((feat: string) => (
-                        <label
-                          key={feat}
-                          className="flex items-center space-x-2 text-gray-900"
-                        >
-                          <input
-                            type="checkbox"
-                            checked
-                            disabled
-                            className="h-4 w-4 text-blue-600"
-                          />
-                          <span>{feat.charAt(0).toUpperCase() + feat.slice(1)}</span>
-                        </label>
-                      ))}
+                    </dd>
                   </div>
-                </div>
-              </form>
+                  <div>
+                    <dt className="font-medium">Qualität</dt>
+                    <dd>{selected.json_daten?.Quality ?? '–'}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-medium">Baujahr</dt>
+                    <dd>{selected.json_daten?.ConstructionYear ?? '–'}</dd>
+                  </div>
+
+                  {/* Ausstattung */}
+                  <div className="col-span-full">
+                    <dt className="font-medium">Ausstattung</dt>
+                    <dd className="mt-2 grid grid-cols-2 gap-3">
+                      {Array.isArray(selected.json_daten?.Features) && selected.json_daten.Features.length > 0 ? (
+                        selected.json_daten.Features.map((feat: string) => (
+                          <span
+                            key={feat}
+                            className="inline-flex items-center space-x-2 text-gray-900"
+                          >
+                            <input
+                              type="checkbox"
+                              checked
+                              disabled
+                              className="h-4 w-4"
+                            />
+                            <span>{feat.charAt(0).toUpperCase() + feat.slice(1)}</span>
+                          </span>
+                        ))
+                      ) : (
+                        <span>–</span>
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* — Einmaliger Button‑Bereich */}
+              <div className="p-4 border-t flex justify-end space-x-3">
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  onClick={() => deleteLead(selected.id)}
+                >
+                  Löschbestätigung
+                </button>
+                <button className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300">
+                  Exportieren
+                </button>
+                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                  Sync to CRM
+                </button>
+              </div>
+
 
               {/* Buttons bleiben unverändert */}
               <div className="p-4 border-t flex justify-end space-x-3">
