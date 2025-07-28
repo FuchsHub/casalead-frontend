@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ihre kostenlose Immobilienbewertung | ProfiTool</title>
+
+    <!-- Tailwind & Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Animate.css & FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
     <script>
         // Parameter aus der URL lesen
         const params = new URLSearchParams(window.location.search);
@@ -44,12 +49,32 @@
 
     <style id="theme-style">
         /* Dein bestehender CSS-Code */
+        html, body {
+        margin: 0; padding: 0;
+        overflow-x: hidden; /* kein horizontaler Scroll */
+        font-family: 'Inter', sans-serif;
+        background-color: var(--primary-color-light);
+        color: #1f2937;
+        }
+        
         body {
-            font-family: var(--font-family);
-            background-color: var(--primary-color-light); /* Nutzt die dynamische Variable */
-            color: #1f2937;
-            margin: 0;
-            padding: 2rem;
+        padding: 1rem;
+        }
+        .container {
+        max-width: 100%;
+        width: 100%;
+        margin: 0 auto;
+        }
+        /* Keine fixen Höhen mehr, alles fließt */
+        iframe, .page { width: 100%; }
+
+        /* Bestehende Styles (angepasst für Responsive) */
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        @media (min-width: 768px) {
+        /* md: */
+        .md\\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .md\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .md\\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
         }
 
         .header {
@@ -577,9 +602,14 @@
                 <button type="button" onclick="nextPage()" class="ml-auto px-7 py-3 btn-primary font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out" id="next-btn">
                     Weiter <i class="fas fa-arrow-right ml-2"></i>
                 </button>
-                <button type="button" class="hidden ml-auto px-7 py-3 bg-green-600 border border-transparent rounded-lg text-white font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200 ease-in-out" id="submit-btn" onclick="submitForm()">
-                    <i class="fas fa-check-circle mr-2"></i> Bewertung anfordern
+                <button
+                type="submit"
+                class="ml-auto px-7 py-3 btn-primary font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out"
+                id="submit-btn"
+                >
+                <i class="fas fa-check-circle mr-2"></i> Bewertung anfordern
                 </button>
+
             </div>
         </form>
     </div>
